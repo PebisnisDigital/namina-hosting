@@ -43,7 +43,7 @@ ftps_options=(-u "$NAMINA_FTPS_USER,$NAMINA_FTPS_PASSWORD" -p "$NAMINA_FTPS_PORT
 
 # First check TLS and a hand-created marker in public_html. Never downgrade
 # encryption or disable certificate verification to make a deploy pass.
-lftp "${ftps_options[@]}" > "$marker_result" <<'LFTP'
+if ! timeout -k 5s 60s lftp "${ftps_options[@]}" > "$marker_result" <<'LFTP'
 set cmd:fail-exit true
 set ftp:ssl-force true
 set ftp:ssl-protect-data true
@@ -55,6 +55,10 @@ set net:timeout 30
 cat namina-deploy-check.txt
 bye
 LFTP
+then
+  printf 'FTPS preflight failed. Check the TLS certificate, FTP hostname, credentials, and deploy marker.\n' >&2
+  exit 1
+fi
 if ! grep -Fxq 'NAMINA-DEPLOY-TARGET' "$marker_result"; then
   printf 'FTPS target check failed. Create namina-deploy-check.txt containing NAMINA-DEPLOY-TARGET in public_html.\n' >&2
   exit 1
@@ -70,7 +74,7 @@ if [[ -f "$source_dir/clients/vini.json" ]]; then
 fi
 
 # lftp mirror -R uploads or updates files; it never prunes without --delete.
-lftp "${ftps_options[@]}" <<LFTP
+timeout -k 10s 540s lftp "${ftps_options[@]}" <<LFTP
 set cmd:fail-exit true
 set ftp:ssl-force true
 set ftp:ssl-protect-data true
