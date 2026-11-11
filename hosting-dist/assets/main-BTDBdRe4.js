@@ -1,0 +1,1 @@
+import{C as e,S as t,T as n,t as r,w as i}from"./namana-DGXCajV2.js";var a=n(i(),1),o=e(),s=t();(0,o.createRoot)(document.getElementById(`root`)).render((0,s.jsx)(a.StrictMode,{children:(0,s.jsx)(r,{slug:`vini`})}));
