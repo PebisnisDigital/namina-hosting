@@ -11,6 +11,15 @@ async function waitForVini(page: Page) {
 }
 
 for (const viewport of viewports) {
+  test(`hosting generator opens its private access page on ${viewport.name}`, async ({ page }) => {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto("/generator/", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: /Website punya kamu/i })).toBeVisible();
+    await expect(page.getByLabel("Token dari link pribadi")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Lihat template Teh Vini" })).toHaveAttribute("href", "/vini/");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+
   test(`hosting export matches existing Vini HTML on ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
 

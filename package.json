@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:hosting": "vite build --outDir hosting-dist",
+    "build:hosting": "vite build --outDir hosting-dist && node scripts/prepare-hosting.mjs",
+    "test:generator-api": "node --import tsx tests/php/generator-api.test.ts",
     "test:hosting": "playwright test --config playwright.hosting.config.ts",
     "lint": "oxlint",
     "preview": "vite preview",

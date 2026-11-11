@@ -35,6 +35,20 @@ jobs:
       - name: Generate static HTML package
         run: npm run build:hosting
 
+      - name: Prepare cPanel PHP runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: zip
+          coverage: none
+
+      - name: Verify PHP syntax and generator permissions
+        run: |
+          php -l hosting-dist/api/generator.php
+          php -l hosting-dist/api/generator-lib.php
+          php -l hosting-dist/api/setup-generator.php
+          npm run test:generator-api
+
       - name: Prepare browser tests
         run: npx playwright install --with-deps chromium
 

@@ -9,9 +9,9 @@ type GalleryKey = "karya" | "produk";
 type EditProps = {
   site: SiteDocument;
   change: (update: (next: SiteDocument) => void) => void;
-  onUpload: (id: string, file: File) => void;
-  uploading: boolean;
-  previews: Record<string, string>;
+  onUpload?: (id: string, file: File) => void;
+  uploading?: boolean;
+  previews?: Record<string, string>;
 };
 
 const icons = [
@@ -36,7 +36,7 @@ function TextField({ label, value, onChange, placeholder, multiline = false, max
   </label>;
 }
 
-export function OriginalStudioEditor({ site, change, onUpload, uploading, previews }: EditProps) {
+export function OriginalStudioEditor({ site, change, onUpload, uploading = false, previews = {} }: EditProps) {
   const [activeTab, setActiveTab] = useState<"dasar" | "tampilan" | SectionKey | GalleryKey>("dasar");
   const [selectedGallery, setSelectedGallery] = useState<string | null>(null);
   const original = site.content.original!;
@@ -165,13 +165,13 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading, previe
           <TextField label="URL gambar 19:6" value={url} placeholder="https://.../gambar.webp" onChange={(value) => change((next) => { next.media.cards[item.id] = value; })} />
           {url ? <img className="studio-original__image" src={previews[url] || url} alt={`Pratinjau ${item.title}`} width={570} height={180} />
             : <p className="studio-original__no-image">Belum ada foto. Ilustrasi bawaan tampil sementara.</p>}
-          <label className="studio-original__upload">Unggah foto JPG, PNG atau WebP (maksimal 1,3 MB)
+          {onUpload && <label className="studio-original__upload">Unggah foto JPG, PNG atau WebP (maksimal 1,3 MB)
             <input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={(event) => {
               const file = event.currentTarget.files?.[0];
               if (file) onUpload(item.id, file);
               event.currentTarget.value = "";
             }} />
-          </label>
+          </label>}
         </div>;
       })}
       <button type="button" className="studio-original__add" disabled={original[section].items.length >= 20} onClick={() => addGallery(section)}>+ Tambah {section}</button>
