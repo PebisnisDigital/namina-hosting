@@ -1,0 +1,26 @@
+name: Import NAMINA source snapshot
+on:
+  push:
+    paths:
+      - .github/workflows/import-namina-source.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Copy original NAMINA source into independent repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch main https://github.com/PebisnisDigital/NAMINA.git /tmp/namina-source
+          rsync -a --exclude='.git' /tmp/namina-source/ ./
+          git rm -- .github/workflows/import-namina-source.yml
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Import independent NAMINA source snapshot'
+          git push origin HEAD:main
