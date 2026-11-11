@@ -13,12 +13,14 @@ function withFixture(run: (data: { root: string; build: string; bin: string }) =
   const bin = join(root, "bin");
   try {
     mkdirSync(join(build, "api"), { recursive: true });
+    mkdirSync(join(build, "clients"));
     mkdirSync(bin);
     writeFileSync(join(build, "index.html"), "<!doctype html>");
     writeFileSync(join(build, "api/generator.php"), "<?php");
-    for (const command of ["ssh", "rsync"]) {
+    writeFileSync(join(build, "clients/vini.json"), "{}");
+    for (const command of ["ssh", "scp"]) {
       const mock = join(bin, command);
-      writeFileSync(mock, `#!/bin/sh\nprintf '%s\\n' "$@" > "$NAMINA_CAPTURE_${command.toUpperCase()}"\n`, { mode: 0o755 });
+      writeFileSync(mock, `#!/bin/sh\nprintf '%s\\n' "$@" >> "$NAMINA_CAPTURE_${command.toUpperCase()}"\n`, { mode: 0o755 });
     }
     run({ root, build, bin });
   } finally {
@@ -37,7 +39,7 @@ function environment(root: string, bin: string) {
     NAMINA_SSH_KNOWN_HOSTS: "example.test ssh-ed25519 mock-key",
     NAMINA_PUBLIC_HTML: "/home/namina93/public_html",
     NAMINA_CAPTURE_SSH: join(root, "ssh-args.txt"),
-    NAMINA_CAPTURE_RSYNC: join(root, "rsync-args.txt"),
+    NAMINA_CAPTURE_SCP: join(root, "scp-args.txt"),
   };
 }
 
@@ -45,9 +47,9 @@ test("whole-site deployment includes the build, preserves client records and nev
   withFixture(({ root, build, bin }) => {
     const result = spawnSync("bash", [script, build], { env: environment(root, bin), encoding: "utf8" });
     assert.equal(result.status, 0, result.stderr);
-    const args = readFileSync(join(root, "rsync-args.txt"), "utf8");
-    assert.match(args, /--include=\/clients\/vini\.json/);
-    assert.match(args, /--exclude=\/clients\/\*\*\*/);
+    const args = readFileSync(join(root, "scp-args.txt"), "utf8");
+    assert.match(args, /hosting-dist\/clients\/vini\.json/);
+    assert.doesNotMatch(args, /hosting-dist\/clients\n/);
     assert.doesNotMatch(args, /--delete/);
     assert.match(args, /namina93@example\.test:\/home\/namina93\/public_html\//);
   });

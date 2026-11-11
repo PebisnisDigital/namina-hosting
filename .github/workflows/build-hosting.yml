@@ -103,7 +103,7 @@ jobs:
           name: namina-html-domainmurah
           path: hosting-dist/
 
-      - name: Sync website to DomainMurah, preserving published clients
+      - name: Upload website over SSH/SFTP, preserving published clients
         env:
           NAMINA_SSH_HOST: ${{ secrets.NAMINA_SSH_HOST }}
           NAMINA_SSH_PORT: ${{ secrets.NAMINA_SSH_PORT }}

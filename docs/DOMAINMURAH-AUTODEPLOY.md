@@ -2,13 +2,13 @@
 
 Workflow: `.github/workflows/build-hosting.yml`
 
-Setiap perubahan ke branch `main` menjalankan typecheck, tes PHP, build HTML, dan tes browser. Jika lulus dan variable `NAMINA_AUTO_DEPLOY_ENABLED` bernilai `true`, file hasil build dikirim ke `public_html` melalui SSH/rsync. Tidak perlu mengunggah atau mengekstrak ZIP lagi.
+Setiap perubahan ke branch `main` menjalankan typecheck, tes PHP, build HTML, dan tes browser. Jika lulus dan variable `NAMINA_AUTO_DEPLOY_ENABLED` bernilai `true`, file hasil build dikirim ke `public_html` melalui SSH/SFTP (SCP). Tidak perlu `rsync`, Node.js di hosting, atau ekstrak ZIP lagi.
 
 ## Satu kali: sambungkan SSH
 
 1. Di cPanel DomainMurah, buka **SSH Access / Manage SSH Keys**. Buat sepasang SSH key khusus deploy NAMINA, beri passphrase kosong untuk penggunaan noninteraktif dalam Actions, lalu **Authorize** public key. Simpan private key hanya di GitHub Actions secret. Jika memungkinkan, gunakan akun/izin yang dibatasi ke folder website.
 2. Catat **SSH Host**, **SSH Port**, **Username cPanel**, dan document root website yang sudah digunakan. Untuk domain utama biasanya `/home/USERNAME/public_html`, tetapi verifikasi lewat File Manager sebelum mengisi target.
-3. Pastikan server memiliki `rsync` dengan menjalankan `command -v rsync` melalui Terminal cPanel. Jika perintah kosong, tanyakan penyedia hosting agar mengaktifkan `rsync` untuk SSH akun ini.
+3. Pastikan akun cPanel memiliki akses SSH/SFTP. `rsync` tidak diperlukan, karena runner GitHub mengirimkan file menggunakan SCP melalui koneksi SSH.
 4. Dapatkan host key SSH server dari penyedia hosting. Baris `known_hosts` harus memakai hostname dan port yang benar, dan fingerprint-nya harus cocok dengan keterangan resmi penyedia. Jangan melewati verifikasi fingerprint.
 5. Buka repository GitHub `PebisnisDigital/namina-hosting` lalu **Settings → Secrets and variables → Actions → New repository secret**. Tambahkan keenam nama berikut:
 
@@ -32,7 +32,7 @@ Minta revisi ke ChatGPT, kemudian commit/push hasil revisi ke repository `Pebisn
 
 - Folder privat `namina-private` ada **di luar** `public_html` dan tidak ikut workflow.
 - JSON `clients/*.json` hasil publikasi generator **tidak ditimpa**, kecuali template demo `/clients/vini.json` yang memang dikelola GitHub.
-- Folder halaman klien yang dibuat secara dinamis (`/{slug}`) **tidak dihapus** karena deployment tidak memakai `rsync --delete`.
+- Folder halaman klien yang dibuat secara dinamis (`/{slug}`) **tidak dihapus** karena SCP tidak melakukan pembersihan folder hosting.
 - Berkas JS/CSS lama tidak dihapus supaya halaman klien yang memakai hash lama tetap berfungsi.
 - Perubahan template HTML untuk klien **baru** otomatis tersedia. Halaman klien yang **sudah terbit** punya salinan HTML masing-masing, jadi perlu proses migrasi tersendiri bila ingin mengganti HTML mereka secara massal.
 - Pengaturan `.htaccess` dan berkas lain yang tidak berada dalam paket build tidak dihapus. Jangan menyimpan secret dalam `hosting-dist`.
