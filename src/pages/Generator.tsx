@@ -5,6 +5,7 @@ import { OriginalStudioEditor } from "./OriginalStudioEditor";
 import "../studio-static.css";
 
 type Policy = "self" | "approval";
+type Step = "data" | "media" | "preview";
 type ClientSummary = {
   slug: string; policy: Policy; revision: number;
   publishedRevision: number; pendingRevision: number | null; updatedAt: string;
@@ -90,9 +91,9 @@ export function Generator() {
   const [brief, setBrief] = useState("");
   const [policyInput, setPolicyInput] = useState<Policy>("approval");
   const [newLink, setNewLink] = useState("");
-  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const [step, setStep] = useState<Step>("data");
+  const [device, setDevice] = useState<"desktop" | "mobile">("mobile");
   const [scale, setScale] = useState(1);
-  const [previewFull, setPreviewFull] = useState(false);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -107,7 +108,7 @@ export function Generator() {
     return result;
   }, [token]);
 
-  const openSite = useCallback(async (slug: string) => {
+  const openSite = useCallback(async (slug: string, preserveStep = false) => {
     if (!token) return;
     setWorking(true);
     setError("");
@@ -118,7 +119,7 @@ export function Generator() {
       setRecord(response.site);
       setDraft(checked);
       setDirty(false);
-      setPreviewFull(false);
+      if (!preserveStep) setStep("data");
       setMessage("");
     } catch (cause) { setError((cause as Error).message); }
     finally { setWorking(false); }
@@ -155,12 +156,15 @@ export function Generator() {
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    const resize = () => setScale(device === "mobile" ? Math.min(1, (canvasRef.current?.clientWidth || 390) / 390) : 1);
+    const resize = () => {
+      const available = Math.max(280, (canvasRef.current?.clientWidth || 390) - 28);
+      setScale(Math.min(1, available / (device === "mobile" ? 390 : 1200)));
+    };
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(canvasRef.current);
     return () => observer.disconnect();
-  }, [device, record, previewFull]);
+  }, [device, record, step]);
 
   const change = (mutate: (next: SiteDocument) => void) => {
     setDraft((current) => {
@@ -220,7 +224,7 @@ export function Generator() {
     if (dirty) throw new Error("Simpan draft terbaru sebelum melanjutkan.");
     const result = await api<{ status: "pending" | "published" }>(token, "publish", { slug: record.slug, expectedRevision: record.revision });
     setMessage(result.status === "published" ? `Website /${record.slug} sudah terbit.` : "Permintaan publish terkirim. Tunggu persetujuan admin NAMINA.");
-    await openSite(record.slug);
+    await openSite(record.slug, true);
     if (session?.role === "admin") await reloadClients();
     setMessage(result.status === "published" ? `Website /${record.slug} sudah terbit.` : "Permintaan publish terkirim. Tunggu persetujuan admin NAMINA.");
   });
@@ -228,7 +232,7 @@ export function Generator() {
   const review = (decision: "approve" | "reject") => void withAction(async () => {
     if (!record) return;
     await api(token, "review", { slug: record.slug, decision, expectedRevision: record.revision });
-    await openSite(record.slug);
+    await openSite(record.slug, true);
     await reloadClients();
     setMessage(decision === "approve" ? "Revisi disetujui dan langsung terbit." : "Permintaan ditolak. Website publik tidak berubah.");
   });
@@ -282,12 +286,17 @@ export function Generator() {
     setToken(""); setInputToken(""); setLoadingAccess(false); setSession(null); setRecord(null); setDraft(null); setClients([]); setNewLink(""); setError("");
   };
 
+  const goToStep = (next: Step) => {
+    setStep(next);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  };
+
   const noSession = !session;
   return <main className="generator-root studio-root">
     <header className="generator-topbar">
       <a href="/" className="generator-brand"><span aria-hidden="true">N</span><strong>NAMINA</strong></a>
       <div className="generator-topbar__right">
-        <span className="generator-eyebrow">CINEMATIC SITE GENERATOR <b>03</b></span>
+        <span className="generator-eyebrow">GENERATOR WEBSITE</span>
         {session && <button type="button" onClick={exit}>Tutup editor</button>}
       </div>
     </header>
@@ -305,43 +314,48 @@ export function Generator() {
       <p className="generator-aside">Tidak perlu akun atau password. Simpan link pribadi seperti kunci rumah: siapa pun yang memegangnya bisa mengedit website.</p>
       <a href="/vini/">Lihat template Teh Vini</a>
     </section> : <>
-      <div className="generator-toolbar">
-        <div>
-          <span className="generator-eyebrow">{session.role === "admin" ? "PANEL PEMILIK" : "RUANG EDIT PRIBADI"} <span className="generator-pip" /></span>
-          <h1>Generator <span>Original</span></h1>
+      <div className="generator-app">
+        <div className="generator-toolbar">
+          <span className="generator-eyebrow">{session.role === "admin" ? "PANEL PEMILIK" : "EDITOR PRIBADI"}</span>
+          <h1>Bikin web. <span>Tiga langkah.</span></h1>
+          <p>Isi profil, pasang media, lalu lihat hasilnya sebelum terbit.</p>
         </div>
-        <div className="generator-toolbar__actions">
-          {record && <a href={`/${record.slug}/`} target="_blank" rel="noreferrer">Lihat website <span aria-hidden="true">↗</span></a>}
-          <button type="button" onClick={() => setPreviewFull((current) => !current)}>{previewFull ? "Tampilkan editor" : "Layar penuh"}</button>
-        </div>
-      </div>
-      {(error || message) && <div className={`generator-message${error ? " generator-message--error" : ""}`} role={error ? "alert" : "status"}>{error || message}</div>}
-      {newLink && <section className="generator-magic" aria-label="Link edit klien baru">
-        <div><strong>Link edit pribadi</strong><span>Hanya kirim ke pemilik website lewat WhatsApp. Link ini tampil sekali setelah dibuat atau dirotasi.</span></div>
-        <input aria-label="Tautan editor klien" value={newLink} readOnly onFocus={(event) => event.target.select()} />
-        <button type="button" onClick={() => { void navigator.clipboard.writeText(newLink).then(() => setMessage("Link editor berhasil disalin.")).catch(() => setError("Gagal menyalin otomatis. Salin teks tautan di atas.")); }}>Salin link</button>
-      </section>}
 
-      <div className={`generator-workspace${previewFull ? " generator-workspace--full" : ""}`}>
-        <aside className="generator-editor" aria-label="Pengaturan website">
+        <nav className="generator-steps" aria-label="Tahap generator">
+          {([ ["data", "Isi data"], ["media", "Media"], ["preview", "Hasil jadi"] ] as const).map(([value, label], index) =>
+            <button type="button" key={value} className={`generator-steps__item${step === value ? " is-active" : ""}`}
+              aria-current={step === value ? "step" : undefined} disabled={!record} onClick={() => goToStep(value)}>
+              <span>{String(index + 1).padStart(2, "0")}</span><strong>{label}</strong>
+            </button>)}
+        </nav>
+
+        {(error || message) && <div className={`generator-message${error ? " generator-message--error" : ""}`} role={error ? "alert" : "status"}>{error || message}</div>}
+        {newLink && <section className="generator-magic" aria-label="Link edit klien baru">
+          <div><strong>Link edit pribadi</strong><span>Kirim hanya lewat WhatsApp ke pemilik. Link lama tidak berlaku setelah diganti.</span></div>
+          <input aria-label="Tautan editor klien" value={newLink} readOnly onFocus={(event) => event.target.select()} />
+          <button type="button" onClick={() => { void navigator.clipboard.writeText(newLink).then(() => setMessage("Link editor berhasil disalin.")).catch(() => setError("Salin tautan dari kolom di atas.")); }}>Salin link</button>
+        </section>}
+
+        {step === "data" && <section className="generator-step-panel" aria-label="Langkah satu: data">
+          <div className="generator-step-heading"><span>LANGKAH 01 / 03</span><h2>Kenalan dulu.</h2><p>Masukkan identitas, riwayat, keahlian, karya, dan produk.</p></div>
           {session.role === "admin" && <section className="generator-manager">
-            <details className="generator-manager__new"><summary><span>+ Buat klien baru</span><small>INPUT BRIEF</small></summary>
+            <details className="generator-manager__new"><summary><span>+ Buat klien baru</span><small>ISI BRIEF</small></summary>
               <div className="generator-manager__form">
                 <label>Slug website <input placeholder="nama-klien" value={slugInput} onChange={(event) => setSlugInput(event.target.value.toLowerCase())} /></label>
                 <label>Nama klien <input placeholder="Nama lengkap" value={nameInput} onChange={(event) => setNameInput(event.target.value)} /></label>
-                <label>Tempel brief klien <textarea placeholder={"Nama: ...\nProfesi: ...\nWhatsApp: ...\nSkill: ...\nKarir: ..."} rows={6} value={brief} onChange={(event) => setBrief(event.target.value)} /></label>
-                <p>Generator membaca isian berlabel pada brief. Data lainnya bisa dilengkapi manual di editor.</p>
+                <label>Tempel brief klien <textarea placeholder={"Nama: ...\nProfesi: ...\nWhatsApp: ...\nSkill: ...\nKarir: ..."} rows={5} value={brief} onChange={(event) => setBrief(event.target.value)} /></label>
+                <p>Bagian yang berlabel akan otomatis dimasukkan ke formulir.</p>
                 <label>Hak publish
                   <select value={policyInput} onChange={(event) => setPolicyInput(event.target.value as Policy)}>
                     <option value="approval">Butuh persetujuan admin</option>
                     <option value="self">Klien boleh publish sendiri</option>
                   </select>
                 </label>
-                <button type="button" disabled={working} onClick={create}>Buat website &amp; magic link</button>
+                <button type="button" className="generator-primary" disabled={working} onClick={create}>Buat website &amp; magic link</button>
               </div>
             </details>
             <label className="generator-client-select">Pilih website
-              <select value={record?.slug || ""} onChange={(event) => { if (!dirty || window.confirm("Perubahan yang belum disimpan akan hilang. Lanjut?") ) void openSite(event.target.value); }}>
+              <select value={record?.slug || ""} onChange={(event) => { if (!dirty || window.confirm("Perubahan yang belum disimpan akan hilang. Lanjut?")) void openSite(event.target.value); }}>
                 {!record && <option value="">Pilih website</option>}
                 {clients.map((item) => <option value={item.slug} key={item.slug}>/{item.slug}{item.pendingRevision !== null ? " • menunggu persetujuan" : ""}</option>)}
               </select>
@@ -350,7 +364,7 @@ export function Generator() {
 
           {record && draft && <>
             <section className="generator-client-status">
-              <div><span className="generator-eyebrow">KLIEN AKTIF</span><strong>/{record.slug}</strong></div>
+              <div><span className="generator-eyebrow">WEBSITE AKTIF</span><strong>/{record.slug}</strong></div>
               <span className={`generator-chip${record.pendingRevision !== null ? " generator-chip--pending" : ""}`}>{record.pendingRevision !== null ? "Menunggu admin" : dirty ? "Belum disimpan" : record.publishedRevision === record.revision ? "Sudah terbit" : "Draft"}</span>
               {session.role === "admin" && <>
                 <label>Aturan publish <select value={record.policy} onChange={(event) => void setPolicy(event.target.value as Policy)} disabled={working}>
@@ -358,37 +372,54 @@ export function Generator() {
                 </select></label>
                 <button type="button" onClick={rotate} disabled={working}>Buat ulang link edit</button>
                 {record.pendingRevision !== null && <div className="generator-review">
-                  <p>Revisi #{record.pendingRevision} menunggu keputusan Teh Vini.</p>
+                  <p>Revisi #{record.pendingRevision} menunggu keputusan admin.</p>
                   <button type="button" disabled={working} onClick={() => review("approve")}>Setujui &amp; terbitkan</button>
                   <button type="button" disabled={working} onClick={() => review("reject")}>Tolak revisi</button>
                 </div>}
               </>}
             </section>
-            <OriginalStudioEditor key={record.slug} site={draft} change={change} />
+            <div className="generator-editor"><OriginalStudioEditor key={`${record.slug}-data`} mode="data" site={draft} change={change} /></div>
           </>}
-          {!record && <div className="generator-empty"><strong>Belum ada website</strong><p>Buat website klien pertama dan kirim link edit melalui WhatsApp.</p></div>}
-        </aside>
+          {!record && <div className="generator-empty"><strong>Belum ada website</strong><p>Buat website klien pertama, lalu lengkapi datanya.</p></div>}
+        </section>}
 
-        <section className="generator-preview" aria-label="Pratinjau website">
-          <div className="generator-preview__head">
-            <div><span className="generator-eyebrow">LIVE PREVIEW</span><strong>{record ? `/${record.slug}` : "Pilih website"}</strong></div>
-            <div className="generator-device" role="group" aria-label="Ukuran layar pratinjau">
-              <button type="button" aria-pressed={device === "desktop"} onClick={() => setDevice("desktop")}>PC</button>
-              <button type="button" aria-pressed={device === "mobile"} onClick={() => setDevice("mobile")}>HP</button>
+        {step === "media" && draft && <section className="generator-step-panel" aria-label="Langkah dua: media">
+          <div className="generator-step-heading"><span>LANGKAH 02 / 03</span><h2>Beri wajah.</h2><p>Pasang video latar dan foto untuk kartu Karya serta Produk. Gunakan link langsung dari Dropbox.</p></div>
+          <div className="generator-editor"><OriginalStudioEditor key={`${record?.slug}-media`} mode="media" site={draft} change={change} /></div>
+        </section>}
+
+        {step === "preview" && draft && <section className="generator-step-panel" aria-label="Langkah tiga: pratinjau dan publikasi">
+          <div className="generator-step-heading"><span>LANGKAH 03 / 03</span><h2>Lihat hasilnya.</h2><p>Periksa tampilan HP dan PC. Jika sudah cocok, simpan dan terbitkan.</p></div>
+          <section className="generator-preview" aria-label="Pratinjau website">
+            <div className="generator-preview__head">
+              <strong>Pratinjau /{record?.slug}</strong>
+              <div className="generator-device" role="group" aria-label="Ukuran layar pratinjau">
+                <button type="button" aria-pressed={device === "mobile"} onClick={() => setDevice("mobile")}>HP</button>
+                <button type="button" aria-pressed={device === "desktop"} onClick={() => setDevice("desktop")}>PC</button>
+              </div>
             </div>
+            <div className={`generator-canvas generator-canvas--${device}`} ref={canvasRef}>
+              <div className="generator-frame-wrap" style={{ width: (device === "mobile" ? 390 : 1200) * scale, height: (device === "mobile" ? 844 : 780) * scale }}>
+                <iframe ref={previewRef} title={`Pratinjau ${record?.slug || "klien"}`} src="/generator-preview/" className="generator-iframe"
+                  style={{ width: device === "mobile" ? 390 : 1200, height: device === "mobile" ? 844 : 780, transform: `scale(${scale})` }} />
+              </div>
+            </div>
+          </section>
+          <div className="generator-final-actions">
+            <div><strong>Siap dibagikan?</strong><p>{dirty ? "Ada perubahan baru. Simpan draft sebelum publish atau mengunduh HTML." : record?.policy === "approval" && session.role === "client" ? "Publikasi membutuhkan persetujuan admin." : "Draft yang sudah disimpan bisa langsung dipublikasikan."}</p></div>
+            <button type="button" disabled={working || dirty} onClick={download}>Unduh HTML</button>
+            <button type="button" className="generator-primary" disabled={working || dirty} onClick={publish}>{record?.policy === "approval" && session.role === "client" ? "Ajukan publish" : "Publish sekarang"}</button>
+            {record && <a href={`/${record.slug}/`} target="_blank" rel="noreferrer">Lihat website publik ↗</a>}
           </div>
-          {draft ? <div className={`generator-canvas generator-canvas--${device}`} ref={canvasRef}>
-            <div className="generator-frame-wrap" style={device === "mobile" ? { height: 844 * scale, width: 390 * scale } : undefined}>
-              <iframe ref={previewRef} title={`Pratinjau ${record?.slug || "klien"}`} src="/generator-preview/" className="generator-iframe" style={device === "mobile" ? { width: 390, height: 844, transform: `scale(${scale})` } : undefined} />
-            </div>
-          </div> : <div className="generator-preview__empty"><span aria-hidden="true">N</span><p>Pratinjau akan muncul setelah website dipilih.</p></div>}
-          {record && <div className="generator-publish-bar">
-            <div><span className="generator-eyebrow">OUTPUT</span><small>{record.policy === "self" || session.role === "admin" ? "Publikasi langsung" : "Menunggu persetujuan admin"}</small></div>
-            <button type="button" disabled={working || !draft} onClick={save}>{working ? "Memproses…" : "Simpan draft"}</button>
-            <button type="button" disabled={working || !draft} onClick={download}>Unduh HTML</button>
-            <button type="button" className="generator-primary" disabled={working || !draft || dirty} onClick={publish}>{record.policy === "approval" && session.role === "client" ? "Ajukan publish" : "Publish sekarang"}</button>
-          </div>}
-        </section>
+        </section>}
+
+        {record && <footer className="generator-step-footer">
+          <div className="generator-step-footer__save"><button type="button" disabled={working || !draft} onClick={save}>{working ? "Memproses…" : "Simpan draft"}</button><small>{dirty ? "Perubahan belum tersimpan" : "Draft tersimpan"}</small></div>
+          <div className="generator-step-footer__nav">
+            {step !== "data" && <button type="button" onClick={() => goToStep(step === "preview" ? "media" : "data")}>Kembali</button>}
+            {step !== "preview" && <button type="button" className="generator-primary" onClick={() => goToStep(step === "data" ? "media" : "preview")}>Lanjut <span aria-hidden="true">→</span></button>}
+          </div>
+        </footer>}
       </div>
     </>}
   </main>;

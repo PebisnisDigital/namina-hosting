@@ -9,6 +9,7 @@ type GalleryKey = "karya" | "produk";
 type EditProps = {
   site: SiteDocument;
   change: (update: (next: SiteDocument) => void) => void;
+  mode?: "all" | "data" | "media";
   onUpload?: (id: string, file: File) => void;
   uploading?: boolean;
   previews?: Record<string, string>;
@@ -36,8 +37,10 @@ function TextField({ label, value, onChange, placeholder, multiline = false, max
   </label>;
 }
 
-export function OriginalStudioEditor({ site, change, onUpload, uploading = false, previews = {} }: EditProps) {
-  const [activeTab, setActiveTab] = useState<"dasar" | "tampilan" | SectionKey | GalleryKey>("dasar");
+type EditorTab = "dasar" | "video" | "tampilan" | SectionKey | GalleryKey;
+
+export function OriginalStudioEditor({ site, change, mode = "all", onUpload, uploading = false, previews = {} }: EditProps) {
+  const [activeTab, setActiveTab] = useState<EditorTab>(mode === "media" ? "video" : "dasar");
   const [selectedGallery, setSelectedGallery] = useState<string | null>(null);
   const original = site.content.original!;
   const style = { ...originalStyleDefaults, ...original.style };
@@ -85,16 +88,21 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading = false
     next.content.original![section].items = next.content.original![section].items.filter((item) => item.id !== id);
     delete next.media.cards[id];
   });
+  const availableTabs: readonly (readonly [EditorTab, string])[] = mode === "data"
+    ? [["dasar", "Identitas"], ["nama", "Nama"], ["karir", "Karir"], ["skill", "Skill"], ["karya", "Karya"], ["produk", "Produk"]]
+    : mode === "media"
+      ? [["video", "Video"], ["karya", "Foto karya"], ["produk", "Foto produk"], ["tampilan", "Warna & gaya"]]
+      : [["dasar", "Dasar"], ["nama", "Nama"], ["karir", "Karir"], ["skill", "Skill"], ["karya", "Karya"], ["produk", "Produk"], ["tampilan", "Tampilan"]];
 
   return <div className="studio-original">
     <nav className="studio-original__tabs" aria-label="Pilih menu untuk diedit">
-      {([ ["dasar", "Dasar"], ["nama", "Nama"], ["karir", "Karir"], ["skill", "Skill"], ["karya", "Karya"], ["produk", "Produk"], ["tampilan", "Tampilan"] ] as const).map(([key, label]) =>
+      {availableTabs.map(([key, label]) =>
         <button type="button" key={key} className={activeTab === key ? "is-active" : ""}
           aria-pressed={activeTab === key}
           onClick={() => { setActiveTab(key); setSelectedGallery(null); }}>{label}</button>)}
     </nav>
     {activeTab === "dasar" && <>
-    <div className="studio-original__heading"><h2>Identitas dan video</h2><span>Template Original</span></div>
+    <div className="studio-original__heading"><h2>{mode === "data" ? "Profil utama" : "Identitas dan video"}</h2><span>Template Original</span></div>
     <section className="studio-group">
       <div className="studio-original__fields-2"><TextField label="Nama di judul" maxLength={60} value={site.content.identity.displayName} onChange={(value) => change((next) => {
         const previous = next.content.identity.displayName;
@@ -105,7 +113,7 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading = false
       <TextField label="Profesi atau tagline" maxLength={70} value={site.content.identity.profession} onChange={(value) => change((next) => { next.content.identity.profession = value; })} /></div>
       <TextField label="Link tombol Japri Saya !" value={original.contactUrl} placeholder="https://wa.me/62..." onChange={(value) => change((next) => { next.content.original!.contactUrl = value; })} />
     </section>
-    <section className="studio-group">
+    {mode === "all" && <section className="studio-group">
       <h3>Video latar</h3>
       <TextField label="Video desktop (URL HTTPS)" value={site.media.desktopVideo} placeholder="https://.../video.mp4" onChange={(value) => change((next) => { next.media.desktopVideo = value; })} />
       <TextField label="Video mobile (opsional)" value={site.media.mobileVideo} placeholder="Kosong = video desktop" onChange={(value) => change((next) => { next.media.mobileVideo = value; })} />
@@ -115,8 +123,21 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading = false
       <label className="studio-original__field"><span>Posisi model di HP: {site.content.background.mobileFocalX ?? site.content.background.focalX}%</span>
         <input type="range" min={0} max={100} value={site.content.background.mobileFocalX ?? site.content.background.focalX} onChange={(event) => change((next) => { next.content.background.mobileFocalX = Number(event.target.value); })} />
       </label>
-    </section>
+    </section>}
     </>}
+
+    {activeTab === "video" && mode === "media" && <section className="studio-group">
+      <div className="studio-original__heading"><h2>Video latar sinematik</h2><span>Link Dropbox</span></div>
+      <p className="generator-editor-hint">Tempel tautan video yang bisa diputar langsung. Pastikan akses Dropbox diatur untuk siapa saja yang memiliki tautan.</p>
+      <TextField label="Video desktop (URL HTTPS)" value={site.media.desktopVideo} placeholder="https://.../video.mp4" onChange={(value) => change((next) => { next.media.desktopVideo = value; })} />
+      <TextField label="Video HP (opsional)" value={site.media.mobileVideo} placeholder="Kosong = pakai video desktop" onChange={(value) => change((next) => { next.media.mobileVideo = value; })} />
+      <label className="studio-original__field"><span>Posisi video desktop: {site.content.background.focalX}%</span>
+        <input type="range" min={0} max={100} value={site.content.background.focalX} onChange={(event) => change((next) => { next.content.background.focalX = Number(event.target.value); })} />
+      </label>
+      <label className="studio-original__field"><span>Posisi model di HP: {site.content.background.mobileFocalX ?? site.content.background.focalX}%</span>
+        <input type="range" min={0} max={100} value={site.content.background.mobileFocalX ?? site.content.background.focalX} onChange={(event) => change((next) => { next.content.background.mobileFocalX = Number(event.target.value); })} />
+      </label>
+    </section>}
 
     {activeTab === "tampilan" && <OriginalStyleEditor value={style} update={updateStyle} reset={() => change((next) => { delete next.content.original!.style; })} />}
 
@@ -143,13 +164,13 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading = false
 
     {(["karya", "produk"] as const).filter((section) => section === activeTab).map((section) => <section className="studio-group studio-original__chapter" key={section}>
       <div className="studio-original__heading"><h2>Menu {section === "karya" ? "Karya" : "Produk"}</h2><span>{original[section].items.length} kartu</span></div>
-      <div className="studio-original__copy">
+      {mode !== "media" && <div className="studio-original__copy">
       <TextField label="Kalimat pembuka" maxLength={120} value={original[section].intro} onChange={(value) => updateSection(section, "intro", value)} />
       <TextField label="Subjudul merah" maxLength={100} value={original[section].subtitle} onChange={(value) => updateSection(section, "subtitle", value)} />
       <TextField label="Deskripsi" multiline maxLength={400} value={original[section].description} onChange={(value) => updateSection(section, "description", value)} />
-      </div>
-      <div className="studio-original__heading studio-original__subheading"><h3>Galeri {section}</h3><span>Slide otomatis 19:6</span></div>
-      {original[section].items.length === 0 && <p className="studio-hint">Belum ada kartu. Tambahkan kartu pertama.</p>}
+      </div>}
+      <div className="studio-original__heading studio-original__subheading"><h3>{mode === "media" ? `Gambar ${section}` : `Galeri ${section}`}</h3><span>{original[section].items.length} kartu</span></div>
+      {original[section].items.length === 0 && <p className="studio-hint">{mode === "media" ? "Belum ada kartu. Tambahkan dulu pada langkah Data." : "Belum ada kartu. Tambahkan kartu pertama."}</p>}
       <div className="studio-original__gallery-list" aria-label={`Daftar ${section}`}>
         {original[section].items.map((item, index) => <button key={item.id} type="button" aria-pressed={(selectedGallery || original[section].items[0]?.id) === item.id}
           className={`studio-original__gallery-choice${(selectedGallery || original[section].items[0]?.id) === item.id ? " is-active" : ""}`}
@@ -158,12 +179,15 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading = false
       {original[section].items.filter((item) => item.id === (selectedGallery && original[section].items.some((entry) => entry.id === selectedGallery) ? selectedGallery : original[section].items[0]?.id)).map((item) => {
         const url = site.media.cards[item.id] || "";
         return <div className="studio-original__item studio-original__gallery-edit" key={item.id}>
-          <div className="studio-original__item-head"><strong>Edit {section}: {item.title}</strong><button type="button" onClick={() => { removeGallery(section, item.id); setSelectedGallery(null); }}>Hapus kartu</button></div>
-          <TextField label="Judul" maxLength={80} value={item.title} onChange={(value) => updateGallery(section, item.id, "title", value)} />
-          <TextField label="Detail popup" multiline maxLength={1200} value={item.description} onChange={(value) => updateGallery(section, item.id, "description", value)} />
-          <TextField label="URL tombol pada popup" value={item.link} placeholder="https://contoh.com" onChange={(value) => updateGallery(section, item.id, "link", value)} />
-          <TextField label="URL gambar 19:6" value={url} placeholder="https://.../gambar.webp" onChange={(value) => change((next) => { next.media.cards[item.id] = value; })} />
-          {url ? <img className="studio-original__image" src={previews[url] || url} alt={`Pratinjau ${item.title}`} width={570} height={180} />
+          <div className="studio-original__item-head"><strong>{item.title}</strong>{mode !== "media" && <button type="button" onClick={() => { removeGallery(section, item.id); setSelectedGallery(null); }}>Hapus kartu</button>}</div>
+          {mode !== "media" && <>
+            <TextField label="Judul" maxLength={80} value={item.title} onChange={(value) => updateGallery(section, item.id, "title", value)} />
+            <TextField label="Detail popup" multiline maxLength={1200} value={item.description} onChange={(value) => updateGallery(section, item.id, "description", value)} />
+            <TextField label="URL tombol pada popup" value={item.link} placeholder="https://contoh.com" onChange={(value) => updateGallery(section, item.id, "link", value)} />
+          </>}
+          {mode !== "data" && <>
+          <TextField label="Link gambar 19:6" value={url} placeholder="https://.../gambar.webp" onChange={(value) => change((next) => { next.media.cards[item.id] = value; })} />
+          {url ? <img className="studio-original__image" src={previews[url] || url} alt={`Pratinjau ${item.title}`} width={570} height={180} loading="lazy" />
             : <p className="studio-original__no-image">Belum ada foto. Ilustrasi bawaan tampil sementara.</p>}
           {onUpload && <label className="studio-original__upload">Unggah foto JPG, PNG atau WebP (maksimal 1,3 MB)
             <input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={(event) => {
@@ -172,9 +196,10 @@ export function OriginalStudioEditor({ site, change, onUpload, uploading = false
               event.currentTarget.value = "";
             }} />
           </label>}
+          </>}
         </div>;
       })}
-      <button type="button" className="studio-original__add" disabled={original[section].items.length >= 20} onClick={() => addGallery(section)}>+ Tambah {section}</button>
+      {mode !== "media" && <button type="button" className="studio-original__add" disabled={original[section].items.length >= 20} onClick={() => addGallery(section)}>+ Tambah {section}</button>}
     </section>)}
   </div>;
 }
