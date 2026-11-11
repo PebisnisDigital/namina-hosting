@@ -68,6 +68,7 @@ jobs:
         with:
           name: namina-html-domainmurah
           path: hosting-dist/
+          include-hidden-files: true
           if-no-files-found: error
 
       - name: Store generated pages in the hosting repository
@@ -79,3 +80,35 @@ jobs:
             git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Refresh static hosting export"
             git push origin HEAD:main
           fi
+
+  deploy_domainmurah:
+    name: Deploy NAMINA to DomainMurah
+    needs: export
+    # Enable only after the SSH host, key, and destination have been verified.
+    if: github.ref == 'refs/heads/main' && vars.NAMINA_AUTO_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: namina-domainmurah-production
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    steps:
+      - name: Read deployment script
+        uses: actions/checkout@v4
+
+      - name: Download tested website build
+        uses: actions/download-artifact@v4
+        with:
+          name: namina-html-domainmurah
+          path: hosting-dist/
+
+      - name: Sync website to DomainMurah, preserving published clients
+        env:
+          NAMINA_SSH_HOST: ${{ secrets.NAMINA_SSH_HOST }}
+          NAMINA_SSH_PORT: ${{ secrets.NAMINA_SSH_PORT }}
+          NAMINA_SSH_USER: ${{ secrets.NAMINA_SSH_USER }}
+          NAMINA_SSH_PRIVATE_KEY: ${{ secrets.NAMINA_SSH_PRIVATE_KEY }}
+          NAMINA_SSH_KNOWN_HOSTS: ${{ secrets.NAMINA_SSH_KNOWN_HOSTS }}
+          NAMINA_PUBLIC_HTML: ${{ secrets.NAMINA_PUBLIC_HTML }}
+        run: bash scripts/deploy-domainmurah.sh hosting-dist
