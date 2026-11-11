@@ -79,6 +79,7 @@ export function Generator() {
     return sessionStorage.getItem(storageToken) || "";
   });
   const [inputToken, setInputToken] = useState("");
+  const [loadingAccess, setLoadingAccess] = useState(() => !!token);
   const [session, setSession] = useState<Session | null>(null);
   const [clients, setClients] = useState<ClientSummary[]>([]);
   const [record, setRecord] = useState<SiteRecord | null>(null);
@@ -124,8 +125,9 @@ export function Generator() {
   }, [token]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) { setLoadingAccess(false); return; }
     let cancelled = false;
+    setLoadingAccess(true);
     void api<Session>(token, "session").then((result) => {
       if (cancelled) return;
       setSession(result);
@@ -133,7 +135,8 @@ export function Generator() {
         setClients(result.clients);
         if (result.clients.length) void openSite(result.clients[0].slug);
       } else void openSite(result.slug);
-    }).catch((cause: Error) => { if (!cancelled) setError(cause.message); });
+    }).catch((cause: Error) => { if (!cancelled) setError(cause.message); })
+      .finally(() => { if (!cancelled) setLoadingAccess(false); });
     return () => { cancelled = true; };
   }, [token, openSite]);
 
@@ -270,12 +273,13 @@ export function Generator() {
     if (!/^[a-f0-9]{64}$/.test(inputToken)) { setError("Masukkan token 64 karakter dari link editor pribadi."); return; }
     sessionStorage.setItem(storageToken, inputToken);
     setToken(inputToken);
+    setLoadingAccess(true);
     setError("");
   };
 
   const exit = () => {
     sessionStorage.removeItem(storageToken);
-    setToken(""); setInputToken(""); setSession(null); setRecord(null); setDraft(null); setClients([]); setNewLink(""); setError("");
+    setToken(""); setInputToken(""); setLoadingAccess(false); setSession(null); setRecord(null); setDraft(null); setClients([]); setNewLink(""); setError("");
   };
 
   const noSession = !session;
@@ -288,7 +292,7 @@ export function Generator() {
       </div>
     </header>
 
-    {noSession ? <section className="generator-gate">
+    {noSession && loadingAccess ? <section className="generator-gate" role="status"><p className="generator-kicker">MEMERIKSA AKSES</p><h1>Menyiapkan <em>generator.</em></h1><p>Memuat data website dan izin publish…</p></section> : noSession ? <section className="generator-gate">
       <p className="generator-kicker">AKSES PRIVAT / NAMINA</p>
       <h1>Website punya kamu. <em>Kontrol juga.</em></h1>
       <p>Setiap klien mendapat link editor khusus dari admin melalui WhatsApp. Buka link itu untuk mengubah data, video, warna, dan kartu website.</p>

@@ -107,6 +107,11 @@ async function run() {
   result = await query(clientToken, "save", { slug: site.slug, document: bad, expectedRevision: 2 });
   assert.equal(result.status, 422, "unsafe media URLs must be rejected by PHP too");
 
+  const unsafeCard = structuredClone(altered);
+  unsafeCard.content.cards[0].link = "javascript:alert(1)";
+  result = await query(clientToken, "save", { slug: site.slug, document: unsafeCard, expectedRevision: 2 });
+  assert.equal(result.status, 422, "unsafe card links must be rejected by PHP too");
+
   const zipResponse = await fetch(`${base}/api/generator.php?action=download`, {
     method: "POST", headers: { Authorization: `Bearer ${clientToken}`, "Content-Type": "application/json" },
     body: JSON.stringify({ slug: site.slug }),
