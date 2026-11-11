@@ -1,0 +1,1 @@
+import{C as e,S as t,b as n,x as r}from"./sites-DRpucmPV.js";import{t as i}from"./StaticSite-CX2TentG.js";/* empty css               */var a=e(t(),1),o=r(),s=n();(0,o.createRoot)(document.getElementById(`root`)).render((0,s.jsx)(a.StrictMode,{children:(0,s.jsx)(i,{slug:`vini`})}));
