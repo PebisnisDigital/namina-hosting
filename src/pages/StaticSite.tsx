@@ -6,6 +6,7 @@ import { createNaminaIntroSound } from "../components/naminaIntroSound";
 import { normalizeSite, resolveMedia, siteDocumentSchema, viniSeed, type SiteDocument } from "../static/sites";
 import { viniOriginal } from "../static/originalSeed";
 import { Shell } from "./shared";
+import { publicPath } from "../static/publicPath";
 
 type SiteState =
   | { status: "loading" }
@@ -39,7 +40,7 @@ export function StaticSite({ slug }: { slug: string }) {
       return () => controller.abort();
     }
     setState({ status: "loading" });
-    fetch(`/clients/${slug}.json`, { signal: controller.signal })
+    fetch(publicPath(`/clients/${slug}.json`), { signal: controller.signal })
       .then(async (response) => {
         if (response.status === 404) return null;
         if (!response.ok) throw new Error("Gagal mengakses data klien.");
@@ -89,7 +90,7 @@ export function StaticSite({ slug }: { slug: string }) {
           <>
             <h1>Website belum tersedia</h1>
             <p>Alamat ini belum memiliki halaman NAMINA yang dipublikasikan.</p>
-            <a href="/">Kembali ke NAMINA</a>
+            <a href={publicPath("/")}>Kembali ke NAMINA</a>
           </>
         ) : (
           <>

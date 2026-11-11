@@ -1,0 +1,63 @@
+name: Download final NAMINA ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Read approved source
+        uses: actions/checkout@v4
+
+      - name: Prepare Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check source
+        run: |
+          npm run typecheck
+          node --import tsx --test tests/*.test.ts
+
+      - name: Build cPanel website
+        run: npm run build:hosting
+
+      - name: Prepare PHP for backend checks
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: zip
+          coverage: none
+
+      - name: Check PHP and generator actions
+        run: |
+          php -l hosting-dist/api/generator.php
+          php -l hosting-dist/api/generator-lib.php
+          php -l hosting-dist/api/setup-generator.php
+          npm run test:generator-api
+
+      - name: Test public pages on desktop and mobile
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:hosting
+
+      - name: Create ZIP with files at archive root
+        run: |
+          cd hosting-dist
+          zip -qr ../namina-domainmurah-final.zip .
+
+      - name: Download this artifact after all checks pass
+        uses: actions/upload-artifact@v4
+        with:
+          name: namina-domainmurah-final-zip
+          path: namina-domainmurah-final.zip
+          if-no-files-found: error

@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:hosting": "vite build --outDir hosting-dist && node scripts/prepare-hosting.mjs",
+    "build:pages": "vite build --outDir pages-dist --base=/namina-hosting/ && node scripts/prepare-pages-preview.mjs",
+    "test:pages": "playwright test --config playwright.pages.config.ts",
     "test:generator-api": "node --import tsx tests/php/generator-api.test.ts",
     "test:hosting": "playwright test --config playwright.hosting.config.ts",
     "lint": "oxlint",

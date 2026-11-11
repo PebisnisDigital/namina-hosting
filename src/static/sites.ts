@@ -2,6 +2,7 @@ import { z } from "zod";
 import { contentSchema, slugSchema, type AssetUrls, type SiteContent } from "../domain/content";
 import { originalProfileTabs } from "./originalProfileTabs";
 import { blankOriginal, viniOriginal } from "./originalSeed";
+import { publicPath } from "./publicPath";
 
 const mediaUrl = z.string().max(2000).refine((value) => {
   if (!value) return true;
@@ -133,7 +134,7 @@ export function resolveMedia(document: SiteDocument): AssetUrls {
       if (url) entries.push([item.id, url]);
     }
   }
-  return Object.fromEntries(entries.filter(([, url]) => !!url));
+  return Object.fromEntries(entries.filter(([, url]) => !!url).map(([id, url]) => [id, publicPath(url)]));
 }
 
 export function prepareSite(document: SiteDocument): SiteDocument {

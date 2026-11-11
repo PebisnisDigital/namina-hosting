@@ -1,0 +1,69 @@
+name: Preview NAMINA on GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "hosting-dist/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: namina-pages-preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read source
+        uses: actions/checkout@v4
+
+      - name: Prepare Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check code and data
+        run: |
+          npm run typecheck
+          node --import tsx --test tests/*.test.ts
+
+      - name: Build static public preview
+        run: npm run build:pages
+
+      - name: Install browser test runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Test GitHub Pages links on desktop and mobile
+        run: npm run test:pages
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload preview files
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-preview-dist/
+
+  publish_preview:
+    name: Publish review preview
+    needs: preview
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,5 +1,6 @@
 import { NaminaLogo } from "../components/NaminaLogo";
 import { Shell } from "./shared";
+import { publicPath } from "../static/publicPath";
 import "../landing.css";
 
 const whatsappNumber = "62881022445869";
@@ -118,8 +119,8 @@ export function Landing() {
               <span>01 / NAMINA ORIGINAL</span>
               <span>CONTOH WEBSITE</span>
             </div>
-            <a className="namina-landing__showcase" href="/vini" aria-label="Buka contoh website interaktif Teh Vini">
-              <img src="/videos/vini-dropbox-poster.webp" width="1280" height="720" fetchPriority="high" alt="Cuplikan website Teh Vini dengan latar panggung sinematik" />
+            <a className="namina-landing__showcase" href={publicPath("/vini/")} aria-label="Buka contoh website interaktif Teh Vini">
+              <img src={publicPath("/videos/vini-dropbox-poster.webp")} width="1280" height="720" fetchPriority="high" alt="Cuplikan website Teh Vini dengan latar panggung sinematik" />
               <span className="namina-landing__showcase-scrim" aria-hidden="true" />
               <span className="namina-landing__showcase-content">
                 <span className="namina-landing__showcase-caption">CONTOH ASLI • KLIK UNTUK JELAJAHI</span>
@@ -166,7 +167,7 @@ export function Landing() {
                 </div>
               </article>
             ))}
-            <a className="namina-landing__story-demo" href="/vini">Jelajahi contoh Teh Vini <span aria-hidden="true">↗</span></a>
+            <a className="namina-landing__story-demo" href={publicPath("/vini/")}>Jelajahi contoh Teh Vini <span aria-hidden="true">↗</span></a>
           </div>
         </section>
 
@@ -218,7 +219,7 @@ export function Landing() {
       <footer className="namina-landing__footer">
         <a href="#beranda" aria-label="NAMINA, kembali ke atas">NAMINA<span>.PRO</span></a>
         <span>Website personal sinematik. Dibuatkan untuk ceritamu.</span>
-        <nav aria-label="Tautan informasi NAMINA"><a href="/privacy">Privasi</a><a href="/terms">Ketentuan</a></nav>
+        <nav aria-label="Tautan informasi NAMINA"><a href={publicPath("/privacy/")}>Privasi</a><a href={publicPath("/terms/")}>Ketentuan</a></nav>
       </footer>
     </div>
   );

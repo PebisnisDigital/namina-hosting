@@ -84,8 +84,9 @@ jobs:
   deploy_domainmurah:
     name: Deploy NAMINA to DomainMurah
     needs: export
-    # Enable only after the dedicated FTPS account and public_html marker are verified.
-    if: github.ref == 'refs/heads/main' && vars.NAMINA_AUTO_DEPLOY_ENABLED == 'true'
+    # During ZIP-first review, pushes must never upload to DomainMurah.
+    # FTPS may only run on an explicitly requested export workflow.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && vars.NAMINA_AUTO_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:

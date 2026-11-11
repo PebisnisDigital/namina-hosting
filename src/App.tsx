@@ -5,15 +5,17 @@ import { ClientForm } from "./pages/ClientForm";
 import { StaticSite } from "./pages/StaticSite";
 import { ThemeDemo, ThemeGallery } from "./pages/ThemeDemos";
 import { getDemoTheme } from "./themes/catalog";
+import { publicPath } from "./static/publicPath";
 import "./namana.css";
 
 function Redirect({ to }: { to: string }) {
-  useEffect(() => { location.replace(to); }, [to]);
+  useEffect(() => { location.replace(publicPath(to)); }, [to]);
   return <p role="status">Membuka {to}…</p>;
 }
 
 function App() {
-  const path = location.pathname.replace(/\/$/, "") || "/";
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const path = (location.pathname.startsWith(`${base}/`) ? location.pathname.slice(base.length) : location.pathname).replace(/\/$/, "") || "/";
   const demoTheme = getDemoTheme(path.slice(1));
   let page;
   if (path === "/") page = <Landing />;

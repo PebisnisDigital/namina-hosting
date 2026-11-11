@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 hosting-dist/
+pages-dist/
+pages-preview-dist/
+namina-domainmurah-final.zip
 *.local
 
 # Editor directories and files
