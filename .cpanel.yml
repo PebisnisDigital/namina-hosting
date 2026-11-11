@@ -1,0 +1,11 @@
+---
+# NAMINA / DomainMurah: SAFE FIRST DEPLOY
+# Stage only. Never modify public_html from this initial deployment test.
+# A future production release must use an approved tested build and a separate, reviewed deployment recipe.
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/namina93/namina-deploy-preview
+    - /bin/test -f hosting-dist/index.html
+    - /bin/test -f hosting-dist/api/generator.php
+    - /bin/mkdir -p "$DEPLOYPATH"
+    - /bin/cp -R hosting-dist/. "$DEPLOYPATH/"
