@@ -39,7 +39,7 @@ test("admin creates a client, edits data, previews mobile, and publishes", async
   });
 
   await page.goto(`/generator/#token=${adminToken}`, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /Generator Original/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Bikin web/ })).toBeVisible();
   await page.getByText("+ Buat klien baru").click();
   await page.getByLabel("Slug website").fill("klien-demo");
   await page.getByLabel("Nama klien").fill("Rina Demo");
