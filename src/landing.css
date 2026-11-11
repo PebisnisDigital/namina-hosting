@@ -1,0 +1,292 @@
+/* NAMINA's public storefront: the film-title language of /vini, re-framed for a done-for-you service. */
+.namina-landing {
+  --nl-bg: #090a0a;
+  --nl-paper: #f5f0e8;
+  --nl-muted: #c9c4bb;
+  --nl-red: #e52b35;
+  font-family: Montserrat, Arial, sans-serif;
+  background: var(--nl-bg);
+  color: var(--nl-paper);
+  min-height: 100dvh;
+  overflow-x: clip;
+}
+
+.namina-landing *,
+.namina-landing *::before,
+.namina-landing *::after { box-sizing: border-box; }
+
+.namina-landing h1,
+.namina-landing h2,
+.namina-landing h3,
+.namina-landing p { margin: 0; }
+
+.namina-landing a { text-decoration: none; }
+
+.namina-landing :focus-visible { outline: 3px solid #fff; outline-offset: 5px; }
+
+.namina-landing__skip {
+  position: absolute;
+  z-index: 30;
+  left: 16px;
+  top: -80px;
+  background: var(--nl-paper);
+  color: var(--nl-bg);
+  padding: 12px 18px;
+}
+.namina-landing__skip:focus { top: 12px; }
+
+.namina-landing__header {
+  width: min(100%, 1600px);
+  margin-inline: auto;
+  padding: 20px clamp(24px, 4.6vw, 84px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  border-bottom: 1px solid rgba(245, 240, 232, .14);
+}
+
+.namina-landing__brand { display: inline-flex; align-items: baseline; gap: 1px; flex-shrink: 0; }
+.namina-landing__brand:hover { color: var(--nl-paper); }
+.namina-landing__brand-dot { font-family: 'Bebas Neue', Impact, sans-serif; font-size: 20px; letter-spacing: .035em; color: var(--nl-red); }
+.namina-landing__header nav { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 38px); }
+.namina-landing__header nav a { color: #dedbd5; font-size: 12px; font-weight: 700; transition: color .2s ease; padding-block: 12px; }
+.namina-landing__header nav a:hover { color: #fff; }
+
+.namina-landing__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 26px;
+  min-height: 51px;
+  padding: 12px 17px 12px 22px;
+  background: #d92731;
+  color: #fff;
+  border: 1px solid #ea4a53;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1.2;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+  white-space: nowrap;
+}
+.namina-landing__whatsapp:hover { background: #b91721; color: #fff; box-shadow: 0 8px 22px rgba(0,0,0,.23); transform: translateY(-2px); }
+.namina-landing__whatsapp:active { background: #9b131b; transform: translateY(0); }
+.namina-landing__whatsapp svg { width: 21px; height: 21px; flex-shrink: 0; }
+.namina-landing__header-cta { font-size: 12px; min-height: 46px; padding: 9px 13px 9px 16px; gap: 12px; }
+.namina-landing__header-cta svg { width: 18px; height: 18px; }
+
+.namina-landing__hero {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: clamp(56px, 6vw, 110px) clamp(24px, 4.6vw, 84px) clamp(68px, 7vw, 120px);
+  display: grid;
+  grid-template-columns: minmax(0, .79fr) minmax(0, 1.21fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 80px);
+  min-height: min(850px, calc(100svh - 88px));
+}
+.namina-landing__hero-copy { min-width: 0; }
+.namina-landing__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 11px;
+  letter-spacing: .13em;
+  font-weight: 700;
+  color: #ddd5ca;
+  margin-bottom: 27px !important;
+}
+.namina-landing__eyebrow span { display: block; width: 22px; height: 2px; background: var(--nl-red); flex-shrink: 0; }
+.namina-landing__hero h1 {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(75px, 7.3vw, 132px);
+  font-weight: 400;
+  line-height: .86;
+  letter-spacing: -.025em;
+  margin: 0 0 33px;
+  max-width: 650px;
+}
+.namina-landing__hero h1 span { color: var(--nl-red); }
+.namina-landing__hero-lead { font-size: clamp(15px, 1.16vw, 17px); color: #ddd8d0; line-height: 1.7; max-width: 505px; }
+.namina-landing__hero-service { color: var(--nl-paper); font-weight: 800; font-size: 13px; line-height: 1.5; margin-top: 15px !important; }
+.namina-landing__hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 20px 30px; margin-top: 33px; }
+.namina-landing__text-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 13px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.48); color: #e9e5dd; transition: color .2s; }
+.namina-landing__text-link:hover { color: #fff; border-color: #fff; }
+
+.namina-landing__hero-stage { min-width: 0; scroll-margin-top: 28px; }
+.namina-landing__stage-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: #bdb7ac; font-size: 10px; letter-spacing: .13em; font-weight: 700; margin-bottom: 13px; }
+.namina-landing__showcase { display: block; position: relative; aspect-ratio: 1.29; isolation: isolate; border: 1px solid #4a4440; overflow: hidden; background: #090a0a; color: #fff; transition: border-color .22s ease, transform .22s ease; }
+.namina-landing__showcase:hover { border-color: var(--nl-red); color: #fff; transform: translateY(-3px); }
+.namina-landing__showcase img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 47% center; transition: transform .4s ease; }
+.namina-landing__showcase:hover img { transform: scale(1.025); }
+.namina-landing__showcase-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,0) 20%, rgba(0,0,0,.25) 55%, rgba(0,0,0,.8) 100%); pointer-events: none; }
+.namina-landing__showcase-content { position: absolute; top: 37%; right: 5%; display: flex; flex-direction: column; width: 35%; color: #fff; text-shadow: 0 2px 8px #000; }
+.namina-landing__showcase-caption { font-size: clamp(7px, .65vw, 11px); font-weight: 800; letter-spacing: .1em; line-height: 1.4; color: #f1e8da; }
+.namina-landing__showcase-content strong { font-family: 'Bebas Neue', Impact, sans-serif; font-size: clamp(37px, 4vw, 70px); line-height: 1; font-weight: 400; margin: 12px 0 3px; white-space: nowrap; }
+.namina-landing__showcase-content > span:last-child { color: #ff5560; font-weight: 800; letter-spacing: .09em; font-size: clamp(9px, .9vw, 14px); }
+.namina-landing__showcase-action { position: absolute; bottom: 18px; right: 20px; display: flex; gap: 16px; align-items: center; padding: 12px 14px; min-height: 44px; background: #d92731; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.namina-landing__showcase-action span { font-size: 18px; line-height: 1; }
+.namina-landing__stage-note { color: #beb8ae; font-size: 12px; line-height: 1.6; margin-top: 15px !important; }
+
+.namina-landing__problem {
+  background: #200e10;
+  padding: clamp(74px, 8vw, 138px) max(clamp(24px, 4.6vw, 84px), calc((100vw - 1432px)/2));
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: clamp(54px, 9vw, 170px);
+}
+.namina-landing__problem .namina-landing__index { color: #ffa5aa; }
+.namina-landing__problem h2 {
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-size: clamp(56px, 5.9vw, 112px);
+  font-weight: 400;
+  line-height: .9;
+  letter-spacing: -.02em;
+  margin: 24px 0 27px;
+}
+.namina-landing__problem h2 span { color: #fa727b; }
+.namina-landing__problem-copy > p { max-width: 545px; color: #e3d3d0; font-size: 15px; line-height: 1.8; }
+.namina-landing__problem-list { align-self: end; }
+.namina-landing__problem-row { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 20px; padding: 21px 0; border-top: 1px solid #614044; }
+.namina-landing__problem-row > span { font-family: 'Bebas Neue', Impact, sans-serif; font-size: 26px; color: #fa727b; line-height: 1.1; }
+.namina-landing__problem-row h3 { font-size: 19px; line-height: 1.2; }
+.namina-landing__problem-row p { color: #d6c6c2; font-size: 13px; line-height: 1.65; margin-top: 7px; }
+.namina-landing__problem-answer { padding: 25px 0 0; border-top: 1px solid #614044; color: #fff5ef; font-weight: 800; line-height: 1.6; font-size: 15px; }
+
+.namina-landing__story { background: #f3eee5; color: #141414; padding: clamp(70px, 8vw, 142px) max(clamp(24px, 4.6vw, 84px), calc((100vw - 1432px)/2)); display: grid; grid-template-columns: minmax(0, 1.03fr) minmax(0, .97fr); gap: clamp(60px, 8vw, 156px); }
+.namina-landing__index { font-size: 11px; letter-spacing: .17em; font-weight: 800; color: #bc1c27; }
+.namina-landing__section-heading h2,
+.namina-landing__process h2,
+.namina-landing__closing h2 { font-family: 'Bebas Neue', Impact, sans-serif; font-weight: 400; font-size: clamp(54px, 5.8vw, 106px); line-height: .9; letter-spacing: -.02em; margin: 25px 0 27px; }
+.namina-landing__section-heading h2 span { color: #ad151a; }
+.namina-landing__section-heading > p { max-width: 475px; font-size: 15px; line-height: 1.8; color: #49443f; }
+.namina-landing__story-list { align-self: center; }
+.namina-landing__story-row { display: grid; grid-template-columns: 45px 1fr; gap: 18px; padding: 26px 0; border-top: 1px solid #c6bdb2; }
+.namina-landing__story-row:last-of-type { border-bottom: 1px solid #c6bdb2; }
+.namina-landing__story-number { color: #bb262f; font-family: 'Bebas Neue', Impact, sans-serif; font-size: 23px; line-height: 1; }
+.namina-landing__story-row h3 { font-size: clamp(19px, 1.55vw, 25px); letter-spacing: -.04em; line-height: 1.2; }
+.namina-landing__story-row p { color: #524b46; font-size: 13px; margin-top: 8px; line-height: 1.6; }
+.namina-landing__story-row .namina-landing__story-effect { color: #642328; padding-top: 5px; }
+.namina-landing__story-effect strong { color: #a51420; }
+.namina-landing__story-demo { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding-top: 17px; font-weight: 800; font-size: 13px; color: #a51420; }
+.namina-landing__story-demo:hover { color: #5e0e13; }
+.namina-landing__story-demo span { font-size: 20px; }
+
+.namina-landing__impact { max-width: 1600px; margin: auto; padding: clamp(80px, 9vw, 145px) clamp(24px, 4.6vw, 84px); }
+.namina-landing__impact-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .65fr); align-items: end; column-gap: 90px; }
+.namina-landing__impact-heading .namina-landing__index { grid-column: 1 / -1; color: #fb626c; }
+.namina-landing__impact h2 { font-family: 'Bebas Neue', Impact, sans-serif; font-size: clamp(84px, 10vw, 180px); line-height: .85; letter-spacing: -.02em; font-weight: 400; margin: 25px 0 55px; }
+.namina-landing__impact h2 span { color: #ee3b47; }
+.namina-landing__impact-heading > p { margin-bottom: 60px; max-width: 440px; font-size: 15px; line-height: 1.8; color: #d1c9c0; }
+.namina-landing__impact-row { display: grid; grid-template-columns: minmax(170px, .48fr) minmax(0, 1fr); gap: clamp(24px, 6vw, 105px); border-top: 1px solid #4c403d; padding: clamp(32px, 4vw, 64px) 0; }
+.namina-landing__impact-row:last-child { border-bottom: 1px solid #4c403d; }
+.namina-landing__impact-row-label { display: flex; gap: 25px; align-items: baseline; }
+.namina-landing__impact-row-label span { font-family: 'Bebas Neue', Impact, sans-serif; color: #fc5a65; font-size: 28px; }
+.namina-landing__impact-row-label h3 { font-family: 'Bebas Neue', Impact, sans-serif; font-size: clamp(39px, 4.2vw, 74px); font-weight: 400; line-height: 1; }
+.namina-landing__impact-row h4 { font-size: clamp(22px, 2vw, 32px); font-weight: 800; line-height: 1.25; letter-spacing: -.03em; margin: 0 0 14px; }
+.namina-landing__impact-row p { font-size: 14px; line-height: 1.8; color: #cfc7bd; max-width: 680px; }
+.namina-landing__impact-row .namina-landing__impact-takeaway { color: #ff858d; font-weight: 800; margin-top: 18px; }
+
+.namina-landing__process { background: #f3eee5; color: #141414; padding: clamp(75px, 8vw, 140px) max(clamp(24px, 4.6vw, 84px), calc((100vw - 1432px)/2)); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: clamp(65px, 9vw, 170px); }
+.namina-landing__process-intro { align-self: start; }
+.namina-landing__process h2 { font-size: clamp(56px, 5.2vw, 93px); }
+.namina-landing__process h2 span { color: #ad151a; }
+.namina-landing__process-intro > p { max-width: 455px; font-size: 15px; color: #49443f; line-height: 1.7; margin-bottom: 27px; }
+.namina-landing__steps { list-style: none; padding: 0; margin: 0; }
+.namina-landing__steps li { display: grid; grid-template-columns: 44px 1fr; gap: 22px; padding: 23px 0 28px; border-top: 1px solid #c6bdb2; }
+.namina-landing__steps li:last-child { border-bottom: 1px solid #c6bdb2; }
+.namina-landing__steps li > span { font-family: 'Bebas Neue', Impact, sans-serif; color: #b11c24; font-size: 25px; }
+.namina-landing__steps h3 { font-size: 20px; font-weight: 800; line-height: 1.3; }
+.namina-landing__steps p { color: #524b46; font-size: 13px; line-height: 1.65; margin-top: 8px; }
+
+.namina-landing__closing { background: #aa111a; text-align: center; padding: clamp(78px, 9vw, 142px) 24px; }
+.namina-landing__closing-label { display: block; color: #ffd2d4; font-size: 11px; font-weight: 800; letter-spacing: .17em; }
+.namina-landing__closing h2 { color: #fffaf1; font-size: clamp(62px, 8vw, 138px); margin: 26px 0 35px; }
+.namina-landing__closing h2 span { color: #110908; }
+.namina-landing__closing .namina-landing__whatsapp { background: #151212; border-color: #151212; }
+.namina-landing__closing .namina-landing__whatsapp:hover { background: #333; }
+.namina-landing__closing p { color: #ffe4e3; font-size: 12px; margin-top: 20px; }
+
+.namina-landing__footer { display: flex; align-items: center; gap: 30px; padding: 30px clamp(24px, 4.6vw, 84px); max-width: 1600px; margin: auto; color: #bbb3aa; font-size: 12px; }
+.namina-landing__footer > a { font-family: 'Bebas Neue', Impact, sans-serif; color: #fff; font-size: 26px; letter-spacing: .04em; }
+.namina-landing__footer > a span { color: #ec3c47; }
+.namina-landing__footer nav { display: flex; gap: 22px; margin-left: auto; }
+.namina-landing__footer nav a { color: #d2c9c1; min-height: 44px; display: inline-flex; align-items: center; }
+.namina-landing__footer nav a:hover { color: #fff; }
+
+@media (max-width: 1150px) {
+  .namina-landing__hero { gap: 30px; grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); }
+  .namina-landing__hero h1 { font-size: clamp(72px, 8vw, 105px); }
+  .namina-landing__story { gap: 65px; }
+  .namina-landing__problem { gap: 65px; }
+  .namina-landing__process { gap: 75px; }
+}
+
+@media (max-width: 850px) {
+  .namina-landing__header { flex-wrap: wrap; padding: 18px 24px; gap: 16px; }
+  .namina-landing__header nav { margin-left: auto; }
+  .namina-landing__header-cta { display: none; }
+  .namina-landing__hero { grid-template-columns: 1fr; min-height: 0; gap: 50px; padding-block: 65px 85px; }
+  .namina-landing__hero h1 { font-size: clamp(80px, 14.5vw, 125px); }
+  .namina-landing__hero-lead { max-width: 650px; }
+  .namina-landing__hero-stage { max-width: 760px; }
+  .namina-landing__showcase { aspect-ratio: 1.47; }
+  .namina-landing__showcase-content strong { font-size: clamp(42px, 8vw, 80px); }
+  .namina-landing__problem, .namina-landing__story, .namina-landing__process { grid-template-columns: 1fr; gap: 46px; }
+  .namina-landing__problem { padding-inline: 24px; }
+  .namina-landing__problem-list { max-width: 720px; }
+  .namina-landing__story { padding-inline: 24px; }
+  .namina-landing__impact-heading { grid-template-columns: 1fr; }
+  .namina-landing__impact h2 { margin-bottom: 25px; }
+  .namina-landing__impact-heading > p { margin-bottom: 40px; }
+  .namina-landing__impact-row { grid-template-columns: minmax(160px, .4fr) minmax(0, 1fr); gap: 35px; }
+  .namina-landing__impact-row-label { gap: 16px; }
+  .namina-landing__impact-row-label h3 { font-size: 52px; }
+  .namina-landing__footer { flex-wrap: wrap; gap: 14px 20px; }
+}
+
+@media (max-width: 520px) {
+  .namina-landing__header { gap: 16px; }
+  .namina-landing__header nav { width: 100%; justify-content: space-between; gap: 8px; font-size: 11px; }
+  .namina-landing__header nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 0; }
+  .namina-landing__hero { padding: 44px 20px 66px; gap: 38px; }
+  .namina-landing__eyebrow { font-size: 9px; letter-spacing: .095em; margin-bottom: 22px !important; }
+  .namina-landing__eyebrow span { width: 16px; }
+  .namina-landing__hero h1 { font-size: clamp(64px, 17vw, 94px); margin-bottom: 26px; }
+  .namina-landing__hero-lead { font-size: 14px; }
+  .namina-landing__hero-service { font-size: 12px; }
+  .namina-landing__hero-actions { margin-top: 26px; gap: 10px 18px; }
+  .namina-landing__whatsapp { gap: 14px; padding: 11px 14px 11px 17px; }
+  .namina-landing__text-link { font-size: 12px; }
+  .namina-landing__stage-meta { font-size: 9px; }
+  .namina-landing__showcase { aspect-ratio: .97; }
+  .namina-landing__showcase img { object-position: 40% center; }
+  .namina-landing__showcase-content { top: 39%; right: 6%; width: 45%; }
+  .namina-landing__showcase-content strong { font-size: clamp(31px, 8.5vw, 48px); }
+  .namina-landing__showcase-caption { font-size: 8px; }
+  .namina-landing__showcase-action { right: 12px; bottom: 12px; }
+  .namina-landing__stage-note { font-size: 11px; }
+  .namina-landing__problem { padding: 72px 20px 78px; }
+  .namina-landing__problem h2 { font-size: clamp(56px, 13.5vw, 83px); }
+  .namina-landing__problem-copy > p { font-size: 14px; }
+  .namina-landing__problem-row { gap: 12px; }
+  .namina-landing__story { padding: 72px 20px 78px; }
+  .namina-landing__section-heading h2, .namina-landing__process h2 { font-size: clamp(53px, 13vw, 78px); }
+  .namina-landing__section-heading > p { font-size: 14px; }
+  .namina-landing__story-row { padding: 21px 0; }
+  .namina-landing__impact { padding: 80px 20px 90px; }
+  .namina-landing__impact h2 { font-size: clamp(76px, 22vw, 120px); }
+  .namina-landing__impact-heading > p { font-size: 14px; }
+  .namina-landing__impact-row { grid-template-columns: 1fr; gap: 15px; padding: 32px 0; }
+  .namina-landing__impact-row-label h3 { font-size: 48px; }
+  .namina-landing__impact-row h4 { font-size: 22px; }
+  .namina-landing__process { padding: 75px 20px 85px; }
+  .namina-landing__closing { padding: 88px 18px; }
+  .namina-landing__closing h2 { font-size: clamp(53px, 13.4vw, 85px); }
+  .namina-landing__footer { padding: 24px 20px 34px; }
+  .namina-landing__footer > span { width: 100%; order: 3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .namina-landing * { scroll-behavior: auto !important; transition: none !important; }
+}

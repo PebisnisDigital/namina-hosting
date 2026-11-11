@@ -1,0 +1,165 @@
+.namina-logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #f8f1e8;
+  white-space: nowrap;
+  text-shadow: none;
+}
+
+.namina-logo__symbol {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.namina-logo__name {
+  display: inline-block;
+  font-family: 'Bebas Neue', Impact, sans-serif;
+  font-weight: 700;
+  letter-spacing: .035em;
+  line-height: 1;
+}
+
+.namina-logo--compact {
+  flex-direction: row;
+  gap: 12px;
+}
+
+.namina-logo--compact .namina-logo__symbol {
+  width: 41px;
+}
+
+.namina-logo--compact .namina-logo__name {
+  font-size: 34px;
+}
+
+.namina-logo--hero {
+  flex-direction: column;
+  gap: 7px;
+  color: #e52b35;
+}
+
+.namina-logo--hero .namina-logo__symbol {
+  width: clamp(105px, 13.5svh, 144px);
+}
+
+.namina-logo--hero .namina-logo__name {
+  font-size: clamp(67px, 7vw, 100px);
+}
+
+.namina-liquid-loader {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: max-content;
+  max-width: 100%;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.namina-intro-stage {
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+}
+
+.namina-intro-stage__heading { margin: 0; line-height: 1; }
+
+.namina-liquid-loader::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: -10% -22%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 35%, rgba(255, 64, 58, .38) 49%, rgba(255, 243, 220, .62) 50%, transparent 64%);
+  opacity: 0;
+  transform: translateX(-120%) skewX(-12deg);
+  animation: namina-light-sweep 5s ease-in-out both;
+}
+
+.namina-liquid-loader__base,
+.namina-liquid-loader__fill {
+  grid-area: 1 / 1;
+  display: block;
+}
+
+.namina-liquid-loader__base .namina-logo--hero {
+  color: #f7f2ea;
+}
+
+.namina-liquid-loader__base .namina-logo__symbol rect {
+  fill: #f7f2ea;
+}
+
+.namina-liquid-loader__base .namina-logo__symbol path {
+  fill: #08080c;
+}
+
+.namina-liquid-loader__fill {
+  animation: namina-liquid-rise 5s linear both;
+  will-change: clip-path;
+}
+
+.namina-liquid-loader--waiting .namina-liquid-loader__fill {
+  animation: none !important;
+  clip-path: inset(100% 0 0);
+}
+
+.namina-liquid-loader--waiting::after {
+  animation: none;
+  display: none;
+}
+
+@keyframes namina-liquid-rise {
+  0% {
+    clip-path: polygon(0 100%, 20% 100%, 40% 100%, 60% 100%, 80% 100%, 100% 100%, 100% 100%, 0 100%);
+  }
+  20% {
+    clip-path: polygon(0 82%, 20% 78%, 40% 83%, 60% 79%, 80% 82%, 100% 80%, 100% 100%, 0 100%);
+  }
+  40% {
+    clip-path: polygon(0 62%, 20% 58%, 40% 63%, 60% 59%, 80% 62%, 100% 60%, 100% 100%, 0 100%);
+  }
+  60% {
+    clip-path: polygon(0 42%, 20% 38%, 40% 43%, 60% 39%, 80% 42%, 100% 40%, 100% 100%, 0 100%);
+  }
+  80% {
+    clip-path: polygon(0 21%, 20% 17%, 40% 22%, 60% 18%, 80% 21%, 100% 19%, 100% 100%, 0 100%);
+  }
+  100% {
+    clip-path: polygon(0 0, 20% 0, 40% 0, 60% 0, 80% 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+@keyframes namina-light-sweep {
+  0%, 12% { transform: translateX(-120%) skewX(-12deg); opacity: 0; }
+  28% { opacity: .85; }
+  49% { transform: translateX(95%) skewX(-12deg); opacity: .28; }
+  52%, 100% { transform: translateX(120%) skewX(-12deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .namina-liquid-loader__fill {
+    animation: none;
+    clip-path: none;
+  }
+  .namina-liquid-loader::after { animation: none; display: none; }
+  .namina-liquid-loader--active .namina-liquid-loader__fill {
+    animation: namina-liquid-rise 5s linear both !important;
+  }
+  .namina-liquid-loader--active::after {
+    display: block;
+    animation: namina-light-sweep 5s ease-in-out both !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .namina-logo--compact { gap: 8px; }
+  .namina-logo--compact .namina-logo__symbol { width: 32px; }
+  .namina-logo--compact .namina-logo__name { font-size: 25px; }
+  .namina-logo--hero .namina-logo__symbol { width: clamp(83px, 11svh, 104px); }
+  .namina-logo--hero .namina-logo__name { font-size: clamp(51px, 13.5vw, 70px); }
+}
