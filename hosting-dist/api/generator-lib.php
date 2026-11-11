@@ -102,6 +102,19 @@ function nm_https_url(mixed $value, bool $allowEmpty = true): bool {
     return is_array($parts) && ($parts['scheme'] ?? '') === 'https' && !empty($parts['host']) && !isset($parts['user']) && !isset($parts['pass']);
 }
 
+function nm_safe_card_link(mixed $value): bool {
+    if (!is_string($value) || strlen($value) > 500 || preg_match('/[\x00-\x20\x7f]/', $value)) return false;
+    if ($value === '') return true;
+    if (str_starts_with($value, 'https://')) return nm_https_url($value, false);
+    if (str_starts_with($value, 'mailto:')) return (bool) preg_match('/^mailto:[^\s@]+@[^\s@]+$/D', $value);
+    if (str_starts_with($value, 'tel:')) return (bool) preg_match('/^tel:[+0-9()\-]+$/D', $value);
+    return false;
+}
+
+function nm_short_text(mixed $value, int $maxChars, bool $required = false): bool {
+    return is_string($value) && strlen($value) <= $maxChars * 4 && (!$required || trim($value) !== '');
+}
+
 function nm_validate_document(mixed $doc, string $slug): array {
     if (!is_array($doc) || ($doc['slug'] ?? null) !== $slug) throw new RuntimeException('Data halaman tidak sesuai dengan klien.', 422);
     if (strlen((string) json_encode($doc)) > 180000) throw new RuntimeException('Data halaman terlalu besar.', 413);
@@ -110,14 +123,47 @@ function nm_validate_document(mixed $doc, string $slug): array {
     if (!is_array($content) || !is_array($media) || ($content['template'] ?? null) !== 'ORIGINAL' || ($content['schemaVersion'] ?? null) !== 1) {
         throw new RuntimeException('Format template Original tidak valid.', 422);
     }
-    if (!is_array($content['identity'] ?? null) || !is_string($content['identity']['displayName'] ?? null) || trim($content['identity']['displayName']) === '' || strlen($content['identity']['displayName']) > 240) {
+    if (!is_array($content['identity'] ?? null) || !nm_short_text($content['identity']['displayName'] ?? null, 60, true)) {
         throw new RuntimeException('Nama klien wajib diisi.', 422);
     }
+    if (!nm_short_text($content['identity']['profession'] ?? null, 70) || !nm_short_text($content['identity']['bio'] ?? null, 300)) {
+        throw new RuntimeException('Identitas klien terlalu panjang.', 422);
+    }
+    if (!is_array($content['cards'] ?? null) || count($content['cards']) < 1 || count($content['cards']) > 24) {
+        throw new RuntimeException('Jumlah kartu identitas tidak valid.', 422);
+    }
+    $visible = false;
+    foreach ($content['cards'] as $card) {
+        if (!is_array($card) || !nm_short_text($card['title'] ?? null, 48, true)
+            || !nm_short_text($card['subtitle'] ?? null, 100)
+            || !nm_short_text($card['description'] ?? null, 1200)
+            || !is_bool($card['visible'] ?? null) || !nm_safe_card_link($card['link'] ?? '')) {
+            throw new RuntimeException('Data kartu identitas tidak valid.', 422);
+        }
+        $visible = $visible || $card['visible'];
+    }
+    if (!$visible) throw new RuntimeException('Minimal satu kartu harus terlihat.', 422);
     $original = $content['original'] ?? null;
     if (!is_array($original) || !is_array($original['nama'] ?? null)) throw new RuntimeException('Data Original belum lengkap.', 422);
     foreach (['nama', 'karir', 'skill', 'karya', 'produk'] as $section) {
         if (!is_array($original[$section]['items'] ?? null)) throw new RuntimeException('Isi menu ' . $section . ' tidak valid.', 422);
         if (count($original[$section]['items']) > 30) throw new RuntimeException('Terlalu banyak data pada menu ' . $section . '.', 422);
+        foreach (['intro' => 120, 'subtitle' => 100, 'description' => 400] as $field => $max) {
+            if (!nm_short_text($original[$section][$field] ?? null, $max)) throw new RuntimeException('Teks pada menu ' . $section . ' terlalu panjang.', 422);
+        }
+        foreach ($original[$section]['items'] as $item) {
+            if (!is_array($item) || !is_string($item['id'] ?? null)) throw new RuntimeException('Item menu tidak valid.', 422);
+            if (in_array($section, ['nama', 'karir', 'skill'], true)) {
+                if (!nm_short_text($item['label'] ?? null, 40, true) || !nm_short_text($item['value'] ?? null, 180)
+                    || !is_int($item['icon'] ?? null) || $item['icon'] <= 0) {
+                    throw new RuntimeException('Data slide ' . $section . ' tidak valid.', 422);
+                }
+            } elseif (!nm_short_text($item['title'] ?? null, 80, true)
+                || !nm_short_text($item['description'] ?? null, 1200)
+                || !nm_https_url($item['link'] ?? null)) {
+                throw new RuntimeException('Data galeri ' . $section . ' tidak valid.', 422);
+            }
+        }
     }
     foreach (['desktopVideo', 'mobileVideo', 'poster', 'portrait', 'enterKey'] as $field) {
         if (!nm_https_url($media[$field] ?? '')) throw new RuntimeException('Link ' . $field . ' tidak valid.', 422);
@@ -126,13 +172,6 @@ function nm_validate_document(mixed $doc, string $slug): array {
     foreach ($media['cards'] as $url) if (!nm_https_url($url)) throw new RuntimeException('Link gambar harus HTTPS.', 422);
     $contact = $original['contactUrl'] ?? '';
     if (!is_string($contact) || ($contact !== '' && !nm_https_url($contact))) throw new RuntimeException('Link kontak harus HTTPS.', 422);
-    foreach (['karya', 'produk'] as $section) {
-        foreach ($original[$section]['items'] as $item) {
-            if (!is_array($item) || !is_string($item['title'] ?? null) || !is_string($item['link'] ?? null) || !nm_https_url($item['link'])) {
-                throw new RuntimeException('Data atau link kartu ' . $section . ' tidak valid.', 422);
-            }
-        }
-    }
     return $doc;
 }
 
