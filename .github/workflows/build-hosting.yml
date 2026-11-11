@@ -1,0 +1,59 @@
+name: Export NAMINA for DomainMurah
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "hosting-dist/**"
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Read independent hosting repository
+        uses: actions/checkout@v4
+
+      - name: Prepare build tools
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate source
+        run: |
+          npm run typecheck
+          node --import tsx --test tests/*.test.ts
+
+      - name: Generate static HTML package
+        run: npm run build:hosting
+
+      - name: Prepare browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify desktop, mobile, and interactions
+        run: npm run test:hosting
+
+      - name: Upload ready-to-host files
+        uses: actions/upload-artifact@v4
+        with:
+          name: namina-html-domainmurah
+          path: hosting-dist/
+          if-no-files-found: error
+
+      - name: Store generated pages in the hosting repository
+        run: |
+          git add -f hosting-dist/
+          if git diff --cached --quiet; then
+            echo "Hosting files are already up to date."
+          else
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Refresh static hosting export"
+            git push origin HEAD:main
+          fi
