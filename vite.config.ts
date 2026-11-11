@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        vini: fileURLToPath(new URL("./vini/index.html", import.meta.url)),
         vinihtml: fileURLToPath(new URL("./vinihtml/index.html", import.meta.url)),
       },
     },
