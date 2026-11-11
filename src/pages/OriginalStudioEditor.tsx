@@ -43,12 +43,16 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
   const [activeTab, setActiveTab] = useState<EditorTab>(mode === "media" ? "video" : "dasar");
   const [selectedGallery, setSelectedGallery] = useState<string | null>(null);
   const original = site.content.original!;
+  const menuLabel = (section: SectionKey | GalleryKey) => original[section].title?.trim() || ({ nama: "Nama", karir: "Karir", skill: "Skill", karya: "Karya", produk: "Produk" } as const)[section];
   const style = { ...originalStyleDefaults, ...original.style };
   const updateStyle = <K extends keyof OriginalStyle>(field: K, value: OriginalStyle[K]) => {
     change((next) => { next.content.original!.style = { ...originalStyleDefaults, ...next.content.original!.style, [field]: value }; });
   };
   const updateSection = (section: SectionKey | GalleryKey, field: "intro" | "subtitle" | "description", value: string) => {
     change((next) => { next.content.original![section][field] = value; });
+  };
+  const updateMenuTitle = (section: SectionKey | GalleryKey, value: string) => {
+    change((next) => { next.content.original![section].title = value; });
   };
   const updateFact = (section: SectionKey, id: string, field: "label" | "value" | "icon", value: string | number) => {
     change((next) => {
@@ -89,10 +93,10 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
     delete next.media.cards[id];
   });
   const availableTabs: readonly (readonly [EditorTab, string])[] = mode === "data"
-    ? [["dasar", "Identitas"], ["nama", "Nama"], ["karir", "Karir"], ["skill", "Skill"], ["karya", "Karya"], ["produk", "Produk"]]
+    ? [["dasar", "Identitas"], ["nama", menuLabel("nama")], ["karir", menuLabel("karir")], ["skill", menuLabel("skill")], ["karya", menuLabel("karya")], ["produk", menuLabel("produk")]]
     : mode === "media"
-      ? [["video", "Video"], ["karya", "Foto karya"], ["produk", "Foto produk"], ["tampilan", "Warna & gaya"]]
-      : [["dasar", "Dasar"], ["nama", "Nama"], ["karir", "Karir"], ["skill", "Skill"], ["karya", "Karya"], ["produk", "Produk"], ["tampilan", "Tampilan"]];
+      ? [["video", "Video"], ["karya", `Foto ${menuLabel("karya")}`], ["produk", `Foto ${menuLabel("produk")}`], ["tampilan", "Warna & gaya"]]
+      : [["dasar", "Dasar"], ["nama", menuLabel("nama")], ["karir", menuLabel("karir")], ["skill", menuLabel("skill")], ["karya", menuLabel("karya")], ["produk", menuLabel("produk")], ["tampilan", "Tampilan"]];
 
   return <div className="studio-original">
     <nav className="studio-original__tabs" aria-label="Pilih menu untuk diedit">
@@ -142,8 +146,9 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
     {activeTab === "tampilan" && <OriginalStyleEditor value={style} update={updateStyle} reset={() => change((next) => { delete next.content.original!.style; })} />}
 
     {(["nama", "karir", "skill"] as const).filter((section) => section === activeTab).map((section) => <section className="studio-group studio-original__chapter" key={section}>
-      <div className="studio-original__heading"><h2>Menu {section === "nama" ? "Nama" : section === "karir" ? "Karir" : "Skill"}</h2><span>{original[section].items.length} data</span></div>
+      <div className="studio-original__heading"><h2>Menu {menuLabel(section)}</h2><span>{original[section].items.length} data</span></div>
       <div className="studio-original__copy">
+      <TextField label="Nama menu di website" maxLength={40} value={original[section].title ?? menuLabel(section)} onChange={(value) => updateMenuTitle(section, value)} />
       <TextField label="Kalimat pembuka" maxLength={120} value={original[section].intro} onChange={(value) => updateSection(section, "intro", value)} />
       {section !== "nama" && <TextField label="Subjudul merah" maxLength={100} value={original[section].subtitle} onChange={(value) => updateSection(section, "subtitle", value)} />}
       <TextField label="Deskripsi di bawah judul" multiline maxLength={400} value={original[section].description} onChange={(value) => updateSection(section, "description", value)} />
@@ -163,8 +168,9 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
     </section>)}
 
     {(["karya", "produk"] as const).filter((section) => section === activeTab).map((section) => <section className="studio-group studio-original__chapter" key={section}>
-      <div className="studio-original__heading"><h2>Menu {section === "karya" ? "Karya" : "Produk"}</h2><span>{original[section].items.length} kartu</span></div>
+      <div className="studio-original__heading"><h2>Menu {menuLabel(section)}</h2><span>{original[section].items.length} kartu</span></div>
       {mode !== "media" && <div className="studio-original__copy">
+      <TextField label="Nama menu di website" maxLength={40} value={original[section].title ?? menuLabel(section)} onChange={(value) => updateMenuTitle(section, value)} />
       <TextField label="Kalimat pembuka" maxLength={120} value={original[section].intro} onChange={(value) => updateSection(section, "intro", value)} />
       <TextField label="Subjudul merah" maxLength={100} value={original[section].subtitle} onChange={(value) => updateSection(section, "subtitle", value)} />
       <TextField label="Deskripsi" multiline maxLength={400} value={original[section].description} onChange={(value) => updateSection(section, "description", value)} />
@@ -203,3 +209,4 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
     </section>)}
   </div>;
 }
+

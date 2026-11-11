@@ -77,7 +77,9 @@
   border: 1px solid transparent;
   color: #e2d9d7;
   padding: 12px 17px;
-  white-space: nowrap;
+  max-width: 180px;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 12px;
   font-weight: 600;
   border-radius: 24px;
@@ -509,7 +511,8 @@
 }
 
 /* Karya and Produk: cinematic 19:6 picture cards with clickable detail popup. */
-.vini-cinema__section-title { text-transform: uppercase; }
+.vini-cinema__section-title { text-transform: uppercase; overflow-wrap: anywhere; }
+.vini-cinema__section-title.is-long { font-size: clamp(43px, 7vw, 82px); letter-spacing: -.045em; }
 .vini-cinema__gallery-viewport {
   order: 2;
   width: min(100%, 790px);
@@ -894,6 +897,15 @@
     font-weight: 600;
     box-shadow: none;
   }
+  .vini-cinema__nav button span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  .vini-cinema__section-title.is-long { font-size: clamp(36px, 8.5vw, 56px); }
   .vini-cinema__nav-icon { display: block; width: 22px; height: 22px; }
   .vini-cinema__nav button:hover,
   .vini-cinema__nav button.is-active,
@@ -1056,3 +1068,4 @@
   .vini-cinema__contact-top { padding-inline: 10px; }
   .vini-cinema__brand .namina-logo--compact .namina-logo__name { font-size: 25px; }
 }
+

@@ -158,6 +158,9 @@ function nm_validate_document(mixed $doc, string $slug): array {
     if (!is_array($original) || !is_array($original['nama'] ?? null)) throw new RuntimeException('Data Original belum lengkap.', 422);
     foreach (['nama', 'karir', 'skill', 'karya', 'produk'] as $section) {
         if (!is_array($original[$section]['items'] ?? null)) throw new RuntimeException('Isi menu ' . $section . ' tidak valid.', 422);
+        if (array_key_exists('title', $original[$section]) && !nm_short_text($original[$section]['title'], 40, true)) {
+            throw new RuntimeException('Nama menu ' . $section . ' wajib diisi, maksimal 40 karakter.', 422);
+        }
         if (count($original[$section]['items']) > 30) throw new RuntimeException('Terlalu banyak data pada menu ' . $section . '.', 422);
         foreach (['intro' => 120, 'subtitle' => 100, 'description' => 400] as $field => $max) {
             if (!nm_short_text($original[$section][$field] ?? null, $max)) throw new RuntimeException('Teks pada menu ' . $section . ' terlalu panjang.', 422);
@@ -226,3 +229,4 @@ function nm_zip(string $slug, array $doc): string {
     $zip->close();
     return $filename;
 }
+

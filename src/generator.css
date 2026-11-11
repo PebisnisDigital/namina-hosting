@@ -193,7 +193,8 @@
 .generator-manager__form p { margin: -3px 0 0; color: #b7a8b4; font-size: 12px; line-height: 1.6; }
 .generator-client-select { margin: 0; padding: 16px 22px 22px; }
 .generator-client-status { display: grid; gap: 13px; padding: 20px 22px; border-bottom: 1px solid #473841; }
-.generator-client-status > div:first-child { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.generator-client-status h3 { margin: 0; color: #fff0e9; font-size: 15px; }
+.generator-client-status > div:first-of-type { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .generator-client-status strong { color: #fff; font-size: 17px; }
 .generator-client-status > label { display: grid; gap: 7px; color: #e5cbd3; font-size: 12px; }
 .generator-chip { justify-self: start; display: inline-flex; padding: 5px 11px; border: 1px solid #45765b; border-radius: 30px; color: #b5e6ca; background: #1a2b22; font-size: 11px; font-weight: 700; }
@@ -249,7 +250,8 @@
 .generator-root .generator-primary:hover { background: #e53a52; }
 .generator-message { margin: 0 0 14px; padding: 13px 15px; border: 1px solid #3f7856; border-radius: 8px; background: #1a2b22; color: #b9eacb; font-size: 12px; line-height: 1.6; }
 .generator-message--error { color: #ffbfca; border-color: #a93b50; background: #331a26; }
-.generator-magic { display: grid; gap: 10px; margin: 0 0 14px; padding: 17px; border: 1px solid #ae4056; border-radius: 12px; background: #311a26; }
+.generator-magic { display: grid; gap: 10px; margin: 16px 22px; padding: 17px; border: 1px solid #ae4056; border-radius: 12px; background: #311a26; }
+.generator-magic input { min-width: 0; width: 100%; }
 .generator-magic > div { display: grid; gap: 5px; }
 .generator-magic strong { font-size: 13px; }
 .generator-magic span { color: #ddbbc6; font-size: 11px; line-height: 1.6; }
@@ -289,6 +291,7 @@
   .generator-step-footer__save small { max-width: 90px; }
   .generator-step-footer__nav button { min-width: 78px; }
   .generator-client-status { padding: 17px; }
+  .generator-magic { margin-inline: 17px; }
 }
 @media (max-width: 390px) {
   .generator-root .generator-steps__item { flex-direction: column; justify-content: center; gap: 3px; }
@@ -301,3 +304,4 @@
 @media (prefers-reduced-motion: reduce) {
   .generator-root *, .generator-root *::before, .generator-root *::after { transition: none !important; scroll-behavior: auto !important; }
 }
+

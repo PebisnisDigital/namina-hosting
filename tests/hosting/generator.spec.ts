@@ -43,11 +43,15 @@ test("admin creates a client, edits data, previews mobile, and publishes", async
   await page.getByText("+ Buat klien baru").click();
   await page.getByLabel("Slug website").fill("klien-demo");
   await page.getByLabel("Nama klien").fill("Rina Demo");
-  await page.getByRole("button", { name: /Buat website & magic link/ }).click();
-  await expect(page.getByLabel("Tautan editor klien")).toHaveValue(new RegExp(`/#token=${clientToken}$`));
-  await expect(page.getByText("/klien-demo").first()).toBeVisible();
+  await page.getByRole("button", { name: /Buat website & mulai isi/ }).click();
+  await expect(page.getByLabel("Pilih website")).toHaveValue("klien-demo");
+  await expect(page.getByLabel("Tautan editor klien")).toHaveCount(0);
+  await expect(page.getByText("Aturan publish")).toHaveCount(0);
 
   await page.getByLabel("Profesi atau tagline").fill("Kreator Digital");
+  await page.getByRole("button", { name: "Karir", exact: true }).click();
+  await page.getByLabel("Nama menu di website").fill("Pengalaman Profesional");
+  await expect(page.getByRole("button", { name: "Pengalaman Profesional", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Simpan draft" }).click();
   await expect(page.getByText("Draft aman tersimpan.", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: /02 Media/ }).click();
@@ -62,9 +66,15 @@ test("admin creates a client, edits data, previews mobile, and publishes", async
   await page.getByRole("button", { name: "HP", exact: true }).click();
   const iframe = page.frameLocator('iframe[title="Pratinjau klien-demo"]');
   await expect(iframe.locator(".vini-cinema")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByLabel("Tautan editor klien")).toHaveValue(new RegExp(`/#token=${clientToken}$`));
+  await expect(page.getByLabel("Aturan publish")).toBeVisible();
+  await expect(iframe.getByRole("button", { name: "Pengalaman Profesional" })).toBeVisible();
   await page.getByRole("button", { name: "Publish sekarang" }).click();
   await expect(page.getByText("Website /klien-demo sudah terbit.")).toBeVisible();
+  await expect(page.getByLabel("Tautan editor klien")).toHaveValue(new RegExp(`/#token=${clientToken}$`));
   expect(site.document.content.identity.profession).toBe("Kreator Digital");
+  expect(site.document.content.original.karir.title).toBe("Pengalaman Profesional");
   expect(site.document.media.mobileVideo).toContain("mobile.mp4");
   expect(site.publishedRevision).toBe(3);
 });
+

@@ -45,30 +45,35 @@ const produkData: GallerySeed[] = [
 export const viniOriginal: OriginalProfile = {
   contactUrl: "https://wa.me/62881022445869?text=Halo%20Teh%20Vini%2C%20saya%20melihat%20profil%20NAMINA%20dan%20ingin%20menghubungi%20Teteh.",
   nama: {
+    title: "Nama",
     intro: "Halo, perkenalkan nama saya adalah...",
     subtitle: "",
     description: "Ibu rumah tangga yang jatuh cinta pada AI, digital marketing, dan karya-karya kreatif.",
     items: nameData.map(([label, value, icon], index) => ({ id: makeId(index + 1), label, value, icon })),
   },
   karir: {
+    title: "Karir",
     intro: "Pengalaman mengenai...",
     subtitle: "PERJALANAN & PENGALAMAN",
     description: "Peran dan perjalanan karir yang aku tekuni.",
     items: careerData.map((value, index) => ({ id: makeId(101 + index), label: "Karir", value, icon: [8121304, 8121309, 8121299, 8121272][index % 4] })),
   },
   skill: {
+    title: "Skill",
     intro: "Aku selalu belajar mengembangkan...",
     subtitle: "KEAHLIAN & KEMAMPUAN",
     description: "Bidang yang aku pelajari dan kembangkan.",
     items: skillData.map((value, index) => ({ id: makeId(201 + index), label: "Skill", value, icon: [8121272, 8121262, 8121290, 8121279][index % 4] })),
   },
   karya: {
+    title: "Karya",
     intro: "Dan inilah...",
     subtitle: "YANG SUDAH DIBAGIKAN",
     description: "Kumpulan website yang aku kerjakan. Sentuh kartu untuk melihat detailnya.",
     items: karyaData.map(([title, description, color, motif], index) => ({ id: makeId(301 + index), title, description, color, motif, link: "", imageAssetId: null })),
   },
   produk: {
+    title: "Produk",
     intro: "Ambil berkah dan manfaat dari...",
     subtitle: "KREASI & BISNIS",
     description: "Produk dan proyek yang aku bangun. Sentuh kartu untuk melihat detailnya.",
@@ -80,14 +85,16 @@ export function blankOriginal(displayName: string): OriginalProfile {
   return {
     contactUrl: "",
     nama: {
+      title: "Nama",
       intro: "Halo, perkenalkan nama saya adalah...",
       subtitle: "",
       description: "",
       items: [{ id: crypto.randomUUID(), label: "Nama", value: displayName, icon: 8121295 }],
     },
-    karir: { intro: "Pengalaman mengenai...", subtitle: "PERJALANAN & PENGALAMAN", description: "", items: [] },
-    skill: { intro: "Aku selalu belajar mengembangkan...", subtitle: "KEAHLIAN & KEMAMPUAN", description: "", items: [] },
-    karya: { intro: "Dan inilah...", subtitle: "YANG SUDAH DIBAGIKAN", description: "", items: [] },
-    produk: { intro: "Ambil berkah dan manfaat dari...", subtitle: "KREASI & BISNIS", description: "", items: [] },
+    karir: { title: "Karir", intro: "Pengalaman mengenai...", subtitle: "PERJALANAN & PENGALAMAN", description: "", items: [] },
+    skill: { title: "Skill", intro: "Aku selalu belajar mengembangkan...", subtitle: "KEAHLIAN & KEMAMPUAN", description: "", items: [] },
+    karya: { title: "Karya", intro: "Dan inilah...", subtitle: "YANG SUDAH DIBAGIKAN", description: "", items: [] },
+    produk: { title: "Produk", intro: "Ambil berkah dan manfaat dari...", subtitle: "KREASI & BISNIS", description: "", items: [] },
   };
 }
+

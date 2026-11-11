@@ -89,7 +89,6 @@ export function Generator() {
   const [slugInput, setSlugInput] = useState("");
   const [nameInput, setNameInput] = useState("");
   const [brief, setBrief] = useState("");
-  const [policyInput, setPolicyInput] = useState<Policy>("approval");
   const [newLink, setNewLink] = useState("");
   const [step, setStep] = useState<Step>("data");
   const [device, setDevice] = useState<"desktop" | "mobile">("mobile");
@@ -112,7 +111,7 @@ export function Generator() {
     if (!token) return;
     setWorking(true);
     setError("");
-    setNewLink("");
+    if (!preserveStep) setNewLink("");
     try {
       const response = await api<{ site: SiteRecord }>(token, `site&slug=${encodeURIComponent(slug)}`);
       const checked = siteDocumentSchema.parse(response.site.document);
@@ -199,14 +198,14 @@ export function Generator() {
       doc.content.original!.nama.items[0].value = nameInput.trim().slice(0, 180);
     }
     const prepared = validDraft(applyBrief(doc, brief));
-    const result = await api<{ token: string; slug: string }>(token, "create", { slug, policy: policyInput, document: prepared, brief });
+    const result = await api<{ token: string; slug: string }>(token, "create", { slug, policy: "approval", document: prepared, brief });
     const link = `${location.origin}/generator/#token=${result.token}`;
     setNewLink(link);
     setSlugInput(""); setNameInput(""); setBrief("");
     await reloadClients();
     await openSite(slug);
     setNewLink(link);
-    setMessage(`Website /${slug} siap diedit. Salin tautan pribadi sebelum meninggalkan halaman ini.`);
+    setMessage(`Website /${slug} siap diisi. Link edit pribadi tersedia pada langkah Hasil jadi.`);
   });
 
   const save = () => void withAction(async () => {
@@ -330,14 +329,8 @@ export function Generator() {
         </nav>
 
         {(error || message) && <div className={`generator-message${error ? " generator-message--error" : ""}`} role={error ? "alert" : "status"}>{error || message}</div>}
-        {newLink && <section className="generator-magic" aria-label="Link edit klien baru">
-          <div><strong>Link edit pribadi</strong><span>Kirim hanya lewat WhatsApp ke pemilik. Link lama tidak berlaku setelah diganti.</span></div>
-          <input aria-label="Tautan editor klien" value={newLink} readOnly onFocus={(event) => event.target.select()} />
-          <button type="button" onClick={() => { void navigator.clipboard.writeText(newLink).then(() => setMessage("Link editor berhasil disalin.")).catch(() => setError("Salin tautan dari kolom di atas.")); }}>Salin link</button>
-        </section>}
-
         {step === "data" && <section className="generator-step-panel" aria-label="Langkah satu: data">
-          <div className="generator-step-heading"><span>LANGKAH 01 / 03</span><h2>Kenalan dulu.</h2><p>Masukkan identitas, riwayat, keahlian, karya, dan produk.</p></div>
+          <div className="generator-step-heading"><span>LANGKAH 01 / 03</span><h2>Kenalan dulu.</h2><p>Isi data tiap menu. Nama menu juga bisa diganti sesuai profil klien.</p></div>
           {session.role === "admin" && <section className="generator-manager">
             <details className="generator-manager__new"><summary><span>+ Buat klien baru</span><small>ISI BRIEF</small></summary>
               <div className="generator-manager__form">
@@ -345,13 +338,7 @@ export function Generator() {
                 <label>Nama klien <input placeholder="Nama lengkap" value={nameInput} onChange={(event) => setNameInput(event.target.value)} /></label>
                 <label>Tempel brief klien <textarea placeholder={"Nama: ...\nProfesi: ...\nWhatsApp: ...\nSkill: ...\nKarir: ..."} rows={5} value={brief} onChange={(event) => setBrief(event.target.value)} /></label>
                 <p>Bagian yang berlabel akan otomatis dimasukkan ke formulir.</p>
-                <label>Hak publish
-                  <select value={policyInput} onChange={(event) => setPolicyInput(event.target.value as Policy)}>
-                    <option value="approval">Butuh persetujuan admin</option>
-                    <option value="self">Klien boleh publish sendiri</option>
-                  </select>
-                </label>
-                <button type="button" className="generator-primary" disabled={working} onClick={create}>Buat website &amp; magic link</button>
+                <button type="button" className="generator-primary" disabled={working} onClick={create}>Buat website &amp; mulai isi</button>
               </div>
             </details>
             <label className="generator-client-select">Pilih website
@@ -363,21 +350,6 @@ export function Generator() {
           </section>}
 
           {record && draft && <>
-            <section className="generator-client-status">
-              <div><span className="generator-eyebrow">WEBSITE AKTIF</span><strong>/{record.slug}</strong></div>
-              <span className={`generator-chip${record.pendingRevision !== null ? " generator-chip--pending" : ""}`}>{record.pendingRevision !== null ? "Menunggu admin" : dirty ? "Belum disimpan" : record.publishedRevision === record.revision ? "Sudah terbit" : "Draft"}</span>
-              {session.role === "admin" && <>
-                <label>Aturan publish <select value={record.policy} onChange={(event) => void setPolicy(event.target.value as Policy)} disabled={working}>
-                  <option value="approval">Persetujuan admin</option><option value="self">Langsung publish</option>
-                </select></label>
-                <button type="button" onClick={rotate} disabled={working}>Buat ulang link edit</button>
-                {record.pendingRevision !== null && <div className="generator-review">
-                  <p>Revisi #{record.pendingRevision} menunggu keputusan admin.</p>
-                  <button type="button" disabled={working} onClick={() => review("approve")}>Setujui &amp; terbitkan</button>
-                  <button type="button" disabled={working} onClick={() => review("reject")}>Tolak revisi</button>
-                </div>}
-              </>}
-            </section>
             <div className="generator-editor"><OriginalStudioEditor key={`${record.slug}-data`} mode="data" site={draft} change={change} /></div>
           </>}
           {!record && <div className="generator-empty"><strong>Belum ada website</strong><p>Buat website klien pertama, lalu lengkapi datanya.</p></div>}
@@ -405,6 +377,27 @@ export function Generator() {
               </div>
             </div>
           </section>
+          {record && <section className="generator-client-status" aria-label="Pengaturan akhir website">
+            <h3>Pengaturan akhir</h3>
+            <div><span className="generator-eyebrow">WEBSITE DIPILIH</span><strong>/{record.slug}</strong></div>
+            <span className={`generator-chip${record.pendingRevision !== null ? " generator-chip--pending" : ""}`}>{record.pendingRevision !== null ? "Menunggu admin" : dirty ? "Belum disimpan" : record.publishedRevision === record.revision ? "Sudah terbit" : "Draft"}</span>
+            {session.role === "admin" && <>
+              <label>Aturan publish <select value={record.policy} onChange={(event) => void setPolicy(event.target.value as Policy)} disabled={working}>
+                <option value="approval">Persetujuan admin</option><option value="self">Langsung publish</option>
+              </select></label>
+              <button type="button" onClick={rotate} disabled={working}>Buat ulang link edit</button>
+              {record.pendingRevision !== null && <div className="generator-review">
+                <p>Revisi #{record.pendingRevision} menunggu keputusan admin.</p>
+                <button type="button" disabled={working} onClick={() => review("approve")}>Setujui &amp; terbitkan</button>
+                <button type="button" disabled={working} onClick={() => review("reject")}>Tolak revisi</button>
+              </div>}
+            </>}
+          </section>}
+          {newLink && <section className="generator-magic" aria-label="Link edit klien baru">
+            <div><strong>Link edit pribadi</strong><span>Kirim hanya lewat WhatsApp ke pemilik. Link lama tidak berlaku setelah diganti.</span></div>
+            <input aria-label="Tautan editor klien" value={newLink} readOnly onFocus={(event) => event.target.select()} />
+            <button type="button" onClick={() => { void navigator.clipboard.writeText(newLink).then(() => setMessage("Link editor berhasil disalin.")).catch(() => setError("Salin tautan dari kolom di atas.")); }}>Salin link</button>
+          </section>}
           <div className="generator-final-actions">
             <div><strong>Siap dibagikan?</strong><p>{dirty ? "Ada perubahan baru. Simpan draft sebelum publish atau mengunduh HTML." : record?.policy === "approval" && session.role === "client" ? "Publikasi membutuhkan persetujuan admin." : "Draft yang sudah disimpan bisa langsung dipublikasikan."}</p></div>
             <button type="button" disabled={working || dirty} onClick={download}>Unduh HTML</button>
@@ -424,3 +417,4 @@ export function Generator() {
     </>}
   </main>;
 }
+

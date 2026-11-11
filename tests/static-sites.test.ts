@@ -26,6 +26,20 @@ test("new clients have independent editable content and no inherited video", () 
   assert.equal(viniSeed.content.identity.displayName, "TEH VINI");
 });
 
+test("client menu titles can be renamed without breaking older website documents", () => {
+  const site = blankSite("menu-custom");
+  site.content.original!.karir.title = "Pengalaman Profesional";
+  site.content.original!.produk.title = "Layanan Saya";
+  const saved = normalizeSite(site);
+  assert.equal(saved.content.original!.karir.title, "Pengalaman Profesional");
+  assert.equal(saved.content.original!.produk.title, "Layanan Saya");
+
+  delete site.content.original!.karir.title;
+  assert.equal(siteDocumentSchema.safeParse(site).success, true);
+  site.content.original!.produk.title = "";
+  assert.equal(siteDocumentSchema.safeParse(site).success, false);
+});
+
 test("mobile video framing can be edited without changing desktop framing", () => {
   const site = blankSite("bingkai-video");
   site.content.background.focalX = 31;
@@ -127,3 +141,4 @@ test("Original design controls persist per client without changing the shared ma
   client.content.original!.style = { ...custom, borderColor: "#12345g" };
   assert.equal(siteDocumentSchema.safeParse(prepareSite(client)).success, false);
 });
+

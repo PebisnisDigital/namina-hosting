@@ -97,12 +97,14 @@ const originalGalleryItemSchema = z.object({
   motif: z.enum(["storm", "cinema", "monogram", "road", "music", "community", "bot", "animation"]),
 }).strict();
 const originalFactSectionSchema = z.object({
+  title: text(40).trim().min(1).optional(),
   intro: text(120),
   subtitle: text(100),
   description: text(400),
   items: z.array(originalFactSchema).max(30),
 }).strict();
 const originalGallerySectionSchema = z.object({
+  title: text(40).trim().min(1).optional(),
   intro: text(120),
   subtitle: text(100),
   description: text(400),
@@ -261,3 +263,4 @@ export function newCard(): ContentCard {
     title: "Kartu baru",
   };
 }
+
