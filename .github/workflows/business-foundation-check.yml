@@ -1,0 +1,54 @@
+name: Validate NAMINA Business foundation
+
+on:
+  pull_request:
+    paths:
+      - "saas/**"
+      - ".github/workflows/business-foundation-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test-local-only
+          MYSQL_DATABASE: namina_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ptest-local-only"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare PHP MySQL driver
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Lint PHP files
+        run: |
+          php -l saas/check-db.php
+          php -l saas/config.example.php
+          php -l saas/ci-verify.php
+
+      - name: Verify schema with clean MySQL 8
+        env:
+          NAMINA_CI_SCHEMA_TEST: "1"
+          NAMINA_CI_DSN: mysql:host=127.0.0.1;port=3306;dbname=namina_ci;charset=utf8mb4
+          NAMINA_CI_USER: root
+          NAMINA_CI_PASSWORD: test-local-only
+        run: php saas/ci-verify.php
