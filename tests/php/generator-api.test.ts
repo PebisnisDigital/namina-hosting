@@ -57,6 +57,8 @@ async function run() {
 
   const privateData = readFileSync(join(dataDir, "sites/klien-uji.json"), "utf8");
   assert.equal(privateData.includes(clientToken), false, "raw client token must not be saved");
+  assert.deepEqual(JSON.parse(privateData).document.media.cards, {}, "private JSON must keep media.cards as an object");
+  assert.equal(Array.isArray(JSON.parse(privateData).document.media.cards), false);
   const clientSession = await query(clientToken, "session");
   assert.deepEqual(clientSession.body, { role: "client", slug: "klien-uji" });
 
@@ -68,12 +70,15 @@ async function run() {
   assert.equal(result.body.site.revision, 1);
   assert.equal(result.body.site.accessHash, undefined);
   assert.equal(result.body.site.brief, undefined, "private brief should stay admin-only");
+  assert.deepEqual(result.body.site.document.media.cards, {}, "empty media mapping must remain a JSON object in API responses");
+  assert.equal(Array.isArray(result.body.site.document.media.cards), false);
 
   result = await query(clientToken, "save", { slug: site.slug, document: site, expectedRevision: 0 });
   assert.equal(result.status, 409, "revision conflicts are rejected");
 
   const altered = structuredClone(site);
   altered.content.identity.profession = "Wirausaha";
+  altered.media.cards[altered.content.cards[0].id] = "https://example.com/gambar.webp";
   result = await query(clientToken, "save", { slug: site.slug, document: altered, expectedRevision: 1 });
   assert.equal(result.status, 200);
   assert.equal(result.body.revision, 2);
@@ -82,6 +87,7 @@ async function run() {
   assert.equal(result.body.status, "pending", "approval clients cannot publish immediately");
   result = await query(admin!, "site&slug=klien-uji");
   assert.equal(result.body.site.pendingRevision, 2);
+  assert.equal(result.body.site.document.media.cards[altered.content.cards[0].id], "https://example.com/gambar.webp");
 
   result = await query(admin!, "review", { slug: site.slug, decision: "reject", expectedRevision: 2 });
   assert.equal(result.body.status, "rejected");
@@ -95,6 +101,8 @@ async function run() {
   assert.ok(statSync(join(siteDir, "klien-uji/index.html")).size > 200);
   const published = JSON.parse(readFileSync(join(siteDir, "clients/klien-uji.json"), "utf8"));
   assert.equal(published.content.identity.profession, "Wirausaha");
+  assert.equal(Array.isArray(published.media.cards), false, "public JSON must use an object for media mapping");
+  assert.equal(published.media.cards[altered.content.cards[0].id], "https://example.com/gambar.webp");
   assert.match(readFileSync(join(siteDir, "klien-uji/index.html"), "utf8"), /content="klien-uji"/);
 
   result = await query(admin!, "policy", { slug: site.slug, policy: "self" });
