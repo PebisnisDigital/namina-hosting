@@ -84,7 +84,7 @@ jobs:
   deploy_domainmurah:
     name: Deploy NAMINA to DomainMurah
     needs: export
-    # Enable only after the SSH host, key, and destination have been verified.
+    # Enable only after the dedicated FTPS account and public_html marker are verified.
     if: github.ref == 'refs/heads/main' && vars.NAMINA_AUTO_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -103,12 +103,13 @@ jobs:
           name: namina-html-domainmurah
           path: hosting-dist/
 
-      - name: Upload website over SSH/SFTP, preserving published clients
+      - name: Install encrypted FTP deploy client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Upload website over FTPS, preserving published clients
         env:
-          NAMINA_SSH_HOST: ${{ secrets.NAMINA_SSH_HOST }}
-          NAMINA_SSH_PORT: ${{ secrets.NAMINA_SSH_PORT }}
-          NAMINA_SSH_USER: ${{ secrets.NAMINA_SSH_USER }}
-          NAMINA_SSH_PRIVATE_KEY: ${{ secrets.NAMINA_SSH_PRIVATE_KEY }}
-          NAMINA_SSH_KNOWN_HOSTS: ${{ secrets.NAMINA_SSH_KNOWN_HOSTS }}
-          NAMINA_PUBLIC_HTML: ${{ secrets.NAMINA_PUBLIC_HTML }}
+          NAMINA_FTPS_HOST: ${{ secrets.NAMINA_FTPS_HOST }}
+          NAMINA_FTPS_PORT: ${{ secrets.NAMINA_FTPS_PORT }}
+          NAMINA_FTPS_USER: ${{ secrets.NAMINA_FTPS_USER }}
+          NAMINA_FTPS_PASSWORD: ${{ secrets.NAMINA_FTPS_PASSWORD }}
         run: bash scripts/deploy-domainmurah.sh hosting-dist
