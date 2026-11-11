@@ -17,10 +17,21 @@ function nm_read_json(string $path): ?array {
     return is_array($data) ? $data : null;
 }
 
+function nm_json_shape(array $data): array {
+    // PHP decodes empty JSON objects as arrays; media.cards must stay an object for the editor.
+    if (is_array($data['media'] ?? null) && is_array($data['media']['cards'] ?? null)) {
+        $data['media']['cards'] = (object) $data['media']['cards'];
+    }
+    foreach (['document', 'site'] as $key) {
+        if (is_array($data[$key] ?? null)) $data[$key] = nm_json_shape($data[$key]);
+    }
+    return $data;
+}
+
 function nm_save_json(string $path, array $data, bool $public = false): void {
     $dir = dirname($path);
     if (!is_dir($dir) && !mkdir($dir, $public ? 0755 : 0700, true) && !is_dir($dir)) throw new RuntimeException('Direktori penyimpanan gagal dibuat.');
-    $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+    $json = json_encode(nm_json_shape($data), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
     $temp = tempnam($dir, '.namina-');
     if ($temp === false || file_put_contents($temp, $json, LOCK_EX) === false) throw new RuntimeException('Gagal menyimpan data.');
     chmod($temp, $public ? 0644 : 0600);
@@ -198,7 +209,7 @@ function nm_zip(string $slug, array $doc): string {
     $zip = new ZipArchive();
     if ($zip->open($filename, ZipArchive::OVERWRITE) !== true) throw new RuntimeException('Paket ZIP gagal dibuat.');
     $zip->addFromString('index.html', str_replace('NAMINA_SITE_SLUG_PLACEHOLDER', $slug, (string) file_get_contents($source)));
-    $zip->addFromString('clients/' . $slug . '.json', json_encode($doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+    $zip->addFromString('clients/' . $slug . '.json', json_encode(nm_json_shape($doc), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
     foreach (['assets', 'animated-icons', 'icons', 'images', 'videos'] as $dir) {
         if (!is_dir($public . '/' . $dir)) continue;
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($public . '/' . $dir, FilesystemIterator::SKIP_DOTS));
