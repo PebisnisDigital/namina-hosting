@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:hosting": "vite build --outDir hosting-dist",
+    "test:hosting": "playwright test --config playwright.hosting.config.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "typecheck": "tsc -b && tsc -p tsconfig.server.json",
