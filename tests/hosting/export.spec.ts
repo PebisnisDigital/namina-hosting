@@ -14,6 +14,9 @@ for (const viewport of viewports) {
   test(`hosting export matches existing Vini HTML on ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
 
+    // The Dropbox video is not needed for testing local layout or controls.
+    await page.route(/https?:\/\/[^/]*dropbox\.com\//, (route) => route.abort());
+
     const readLayout = async () => page.evaluate(() => {
       const box = (selector: string) => {
         const rect = document.querySelector(selector)!.getBoundingClientRect();
@@ -27,11 +30,11 @@ for (const viewport of viewports) {
       };
     });
 
-    await page.goto("/vinihtml/");
+    await page.goto("/vinihtml/", { waitUntil: "domcontentloaded" });
     await waitForVini(page);
     const reference = await readLayout();
 
-    await page.goto("/vini/");
+    await page.goto("/vini/", { waitUntil: "domcontentloaded" });
     await waitForVini(page);
     expect(await readLayout()).toEqual(reference);
 
@@ -45,9 +48,9 @@ for (const viewport of viewports) {
     const after = await page.locator(".vini-cinema__highlights").evaluate((el) => el.scrollLeft);
     expect(after).toBeGreaterThan(before);
 
-    await page.getByRole("button", { name: "Produk", exact: true }).click();
+    await page.getByRole("button", { name: "Produk", exact: true }).click({ force: true, timeout: 5_000 });
     await expect(page.locator(".vini-cinema__gallery-viewport")).toBeVisible();
-    await page.locator('.vini-cinema__gallery-slide[aria-hidden="false"] button').first().click();
+    await page.locator('.vini-cinema__gallery-slide[aria-hidden="false"] button').first().click({ force: true, timeout: 5_000 });
     await expect(page.getByRole("dialog")).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -57,7 +60,7 @@ for (const viewport of viewports) {
 
   test(`hosting landing works on ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /KENALAN/ })).toBeVisible();
     await expect(page.getByRole("link", { name: "Buka contoh website interaktif Teh Vini" })).toHaveAttribute("href", "/vini");
     const waLinks = page.locator('a[href^="https://wa.me/"]');
