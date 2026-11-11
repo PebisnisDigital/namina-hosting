@@ -41,6 +41,14 @@ jobs:
       - name: Verify desktop, mobile, and interactions
         run: npm run test:hosting
 
+      - name: Keep browser diagnostics if testing fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: namina-browser-test-errors
+          path: test-results/
+          if-no-files-found: ignore
+
       - name: Upload ready-to-host files
         uses: actions/upload-artifact@v4
         with:
