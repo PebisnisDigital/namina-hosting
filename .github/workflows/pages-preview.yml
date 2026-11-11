@@ -39,7 +39,7 @@ jobs:
         run: npm run build:pages
 
       - name: Install browser test runtime
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Test GitHub Pages links on desktop and mobile
         run: npm run test:pages
