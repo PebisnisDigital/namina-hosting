@@ -114,6 +114,7 @@ export function ViniCinematic({
   const suppressCardClickRef = useRef(false);
 
   const activeSection = original[activeMenu.toLowerCase() as "nama" | "karir" | "skill" | "karya" | "produk"];
+  const menuTitle = (menu: MenuKey) => original[menu.toLowerCase() as "nama" | "karir" | "skill" | "karya" | "produk"].title?.trim() || menu;
   const factColumns = pageSize === 1 ? 1.12 : (customStyle?.factColumns ?? 3);
   const galleryColumns = pageSize === 1 ? 1.12 : (customStyle?.galleryColumns ?? 2);
   const visibleFactColumns = Math.min(factColumns, Math.max(1, original[activeMenu.toLowerCase() as "nama" | "karir" | "skill" | "karya" | "produk"].items.length));
@@ -347,7 +348,7 @@ export function ViniCinematic({
             {menus.map((menu) => (
               <button key={menu} type="button" className={activeMenu === menu ? "is-active" : ""} aria-current={activeMenu === menu ? "page" : undefined} onClick={() => selectMenu(menu)}>
                 <MenuIcon menu={menu} />
-                <span>{menu}</span>
+                <span>{menuTitle(menu)}</span>
               </button>
             ))}
           </nav>
@@ -364,7 +365,7 @@ export function ViniCinematic({
               </>
             ) : (
               <>
-                <h1 className="vini-cinema__section-title">{activeMenu}<span>{activeSection.subtitle}</span></h1>
+                <h1 className="vini-cinema__section-title">{menuTitle(activeMenu)}<span>{activeSection.subtitle}</span></h1>
                 <IntroDescription text={activeSection.description} />
               </>
             )}
