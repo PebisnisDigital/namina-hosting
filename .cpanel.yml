@@ -1,11 +1,11 @@
 ---
-# NAMINA / DomainMurah: SAFE FIRST DEPLOY
-# Stage only. Never modify public_html from this initial deployment test.
-# A future production release must use an approved tested build and a separate, reviewed deployment recipe.
+# NAMINA / DomainMurah: production deployment with strict file allowlist.
+# On each manual cPanel "Deploy HEAD Commit":
+# 1. Verify target, source, private folder and file safety (read-only).
+# 2. Make a private backup of the files that will be overwritten.
+# 3. Copy only approved application paths; NEVER deploy clients/* or delete files.
+# To roll back cPanel deployment policy, revert this file to staging-only.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/namina93/namina-deploy-preview
-    - /bin/test -f hosting-dist/index.html
-    - /bin/test -f hosting-dist/api/generator.php
-    - /bin/mkdir -p "$DEPLOYPATH"
-    - /bin/cp -R hosting-dist/. "$DEPLOYPATH/"
+    - /bin/bash scripts/deploy-cpanel-safe.sh --check
+    - /usr/bin/env NAMINA_CPANEL_APPROVE_PRODUCTION=YES_DEPLOY_NAMINA /bin/bash scripts/deploy-cpanel-safe.sh --apply
