@@ -3,8 +3,10 @@ name: Guard NAMINA production deploy
 on:
   pull_request:
     paths:
+      - ".cpanel.yml"
       - "scripts/deploy-cpanel-safe.sh"
       - "tests/cpanel-safe-deploy.test.ts"
+      - "tests/cpanel-deploy-policy.test.ts"
       - "docs/CPANEL-SAFE-DEPLOY.md"
       - ".github/workflows/test-cpanel-safe.yml"
   workflow_dispatch:
@@ -26,4 +28,4 @@ jobs:
       - name: Shell syntax and read-only/apply safety checks
         run: |
           bash -n scripts/deploy-cpanel-safe.sh
-          node --import tsx --test tests/cpanel-safe-deploy.test.ts
+          node --import tsx --test tests/cpanel-safe-deploy.test.ts tests/cpanel-deploy-policy.test.ts
