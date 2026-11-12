@@ -89,3 +89,11 @@ test("an incomplete build is blocked before writing", () => testWithSite((site) 
   assert.equal(readFileSync(join(site.docroot, "index.html"), "utf8"), "EXISTING LANDING");
   assert.equal(existsSync(join(site.privateDir, "deploy-backups")), false);
 }));
+
+
+test("deployment does not require /dev/fd process substitution on cPanel", () => {
+  const source = readFileSync(deployScript, "utf8");
+  assert.doesNotMatch(source, /done\s*<\s*<\(/);
+  assert.match(source, /done\s*<\s*"\$paths"/);
+  assert.match(source, /find "\$entry" -type f -print0 > "\$paths"/);
+});
