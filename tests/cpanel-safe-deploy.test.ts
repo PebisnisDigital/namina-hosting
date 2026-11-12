@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, readdirSync, chmodSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -68,8 +68,15 @@ test("safe preflight is read-only, and wrong domain marker is rejected", () => t
 test("app-only deploy requires approval, backs up overwritten files, preserves clients", () => testWithSite((site) => {
   assert.notEqual(run(site, "--apply").status, 0);
   assert.equal(readFileSync(join(site.docroot, "index.html"), "utf8"), "EXISTING LANDING");
+  // Simulate a cPanel/Git worker that checked out public assets as private files.
+  chmodSync(join(site.build, "assets/new.js"), 0o600);
+  chmodSync(join(site.build, "assets"), 0o700);
   const result = run(site, "--apply", true);
   assert.equal(result.status, 0, result.stderr);
+  assert.equal(statSync(join(site.docroot, "assets")).mode & 0o777, 0o755);
+  assert.equal(statSync(join(site.docroot, "assets/new.js")).mode & 0o777, 0o644);
+  assert.equal(statSync(join(site.docroot, "generator/index.html")).mode & 0o777, 0o644);
+  assert.equal(statSync(join(site.docroot, "index.html")).mode & 0o777, 0o644);
   assert.equal(readFileSync(join(site.docroot, "index.html"), "utf8"), "UPDATED LANDING");
   assert.equal(readFileSync(join(site.docroot, "api/generator.php"), "utf8"), "<?php // UPDATED");
   assert.equal(readFileSync(join(site.docroot, "generator/index.html"), "utf8"), "UPDATED GENERATOR");

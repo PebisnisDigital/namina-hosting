@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - ".cpanel.yml"
+      - "api/generator-lib.php"
+      - "tests/php/generator-api.test.ts"
       - "scripts/deploy-cpanel-safe.sh"
       - "tests/cpanel-safe-deploy.test.ts"
       - "tests/cpanel-deploy-policy.test.ts"
@@ -29,3 +31,14 @@ jobs:
         run: |
           bash -n scripts/deploy-cpanel-safe.sh
           node --import tsx --test tests/cpanel-safe-deploy.test.ts tests/cpanel-deploy-policy.test.ts
+      - name: Prepare PHP runtime
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: zip
+          coverage: none
+      - name: Test published client HTML access modes
+        run: |
+          npm run build:hosting
+          php -l hosting-dist/api/generator-lib.php
+          npm run test:generator-api
