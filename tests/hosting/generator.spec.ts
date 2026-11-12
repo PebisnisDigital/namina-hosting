@@ -51,6 +51,8 @@ test("admin creates a client, edits data, previews mobile, and publishes", async
   await page.getByLabel("Profesi atau tagline").fill("Kreator Digital");
   await page.getByRole("button", { name: "Karir", exact: true }).click();
   await page.getByLabel("Nama menu di website").fill("Pengalaman Profesional");
+  await page.getByRole("button", { name: "+ Tambah data" }).click();
+  await page.getByLabel("Isi", { exact: true }).fill("Membangun jasa website untuk UMKM");
   await expect(page.getByRole("button", { name: "Pengalaman Profesional", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Simpan draft" }).click();
   await expect(page.getByText("Draft aman tersimpan.", { exact: false })).toBeVisible();

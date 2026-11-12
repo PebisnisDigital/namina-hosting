@@ -305,3 +305,40 @@
   .generator-root *, .generator-root *::before, .generator-root *::after { transition: none !important; scroll-behavior: auto !important; }
 }
 
+
+
+/* Prompt panels: editable data produces a read-only, copyable Flow prompt. */
+.generator-editor .studio-original__prompt .studio-original__heading { padding-bottom: 12px; }
+.generator-editor .studio-original__prompt-text {
+  display: block;
+  width: 100%;
+  min-height: 350px;
+  max-height: 62dvh;
+  resize: vertical;
+  font: 12px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.generator-editor .studio-original__prompt-warning {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #b77c5b;
+  border-radius: 7px;
+  color: #ffdbb4;
+  background: #35231e;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.generator-editor .studio-original__prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.generator-editor .studio-original__prompt-actions p {
+  margin: 0;
+  color: #e3cad1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.generator-editor .studio-original__prompt-actions button { flex: none; }

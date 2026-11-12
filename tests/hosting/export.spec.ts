@@ -71,7 +71,7 @@ for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /KENALAN/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Buka contoh website interaktif Teh Vini" })).toHaveAttribute("href", "/vini");
+    await expect(page.getByRole("link", { name: "Buka contoh website interaktif Teh Vini" })).toHaveAttribute("href", "/vini/");
     const waLinks = page.locator('a[href^="https://wa.me/"]');
     expect(await waLinks.count()).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

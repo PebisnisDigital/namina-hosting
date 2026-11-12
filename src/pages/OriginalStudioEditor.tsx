@@ -3,6 +3,7 @@ import type { OriginalStyle } from "../domain/content";
 import type { SiteDocument } from "../static/sites";
 import { originalStyleDefaults } from "../static/originalStyle";
 import { OriginalStyleEditor } from "./OriginalStyleEditor";
+import { buildClientImagePrompt, buildClientVideoPrompt, hasClientPromptContext, whatsAppLinkFromNumber, whatsAppNumberFromLink } from "../static/generatorPrompts";
 
 type SectionKey = "nama" | "karir" | "skill";
 type GalleryKey = "karya" | "produk";
@@ -37,11 +38,12 @@ function TextField({ label, value, onChange, placeholder, multiline = false, max
   </label>;
 }
 
-type EditorTab = "dasar" | "video" | "tampilan" | SectionKey | GalleryKey;
+type EditorTab = "dasar" | "video" | "prompt-gambar" | "prompt-video" | "tampilan" | SectionKey | GalleryKey;
 
 export function OriginalStudioEditor({ site, change, mode = "all", onUpload, uploading = false, previews = {} }: EditProps) {
   const [activeTab, setActiveTab] = useState<EditorTab>(mode === "media" ? "video" : "dasar");
   const [selectedGallery, setSelectedGallery] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<"ready" | "copied" | "error">("ready");
   const original = site.content.original!;
   const menuLabel = (section: SectionKey | GalleryKey) => original[section].title?.trim() || ({ nama: "Nama", karir: "Karir", skill: "Skill", karya: "Karya", produk: "Produk" } as const)[section];
   const style = { ...originalStyleDefaults, ...original.style };
@@ -95,7 +97,7 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
   const availableTabs: readonly (readonly [EditorTab, string])[] = mode === "data"
     ? [["dasar", "Identitas"], ["nama", menuLabel("nama")], ["karir", menuLabel("karir")], ["skill", menuLabel("skill")], ["karya", menuLabel("karya")], ["produk", menuLabel("produk")]]
     : mode === "media"
-      ? [["video", "Video"], ["karya", `Foto ${menuLabel("karya")}`], ["produk", `Foto ${menuLabel("produk")}`], ["tampilan", "Warna & gaya"]]
+      ? [["video", "Video"], ["prompt-gambar", "Prompt Gambar"], ["prompt-video", "Prompt Video"], ["tampilan", "Warna & gaya"]]
       : [["dasar", "Dasar"], ["nama", menuLabel("nama")], ["karir", menuLabel("karir")], ["skill", menuLabel("skill")], ["karya", menuLabel("karya")], ["produk", menuLabel("produk")], ["tampilan", "Tampilan"]];
 
   return <div className="studio-original">
@@ -103,7 +105,7 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
       {availableTabs.map(([key, label]) =>
         <button type="button" key={key} className={activeTab === key ? "is-active" : ""}
           aria-pressed={activeTab === key}
-          onClick={() => { setActiveTab(key); setSelectedGallery(null); }}>{label}</button>)}
+          onClick={() => { setActiveTab(key); setSelectedGallery(null); setCopyStatus("ready"); }}>{label}</button>)}
     </nav>
     {activeTab === "dasar" && <>
     <div className="studio-original__heading"><h2>{mode === "data" ? "Profil utama" : "Identitas dan video"}</h2><span>Template Original</span></div>
@@ -115,7 +117,12 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
         if (first) first.value = value;
       })} />
       <TextField label="Profesi atau tagline" maxLength={70} value={site.content.identity.profession} onChange={(value) => change((next) => { next.content.identity.profession = value; })} /></div>
-      <TextField label="Link tombol Japri Saya !" value={original.contactUrl} placeholder="https://wa.me/62..." onChange={(value) => change((next) => { next.content.original!.contactUrl = value; })} />
+      <label className="studio-original__field">
+        <span>Nomor WhatsApp untuk tombol Japri Saya!</span>
+        <input type="tel" inputMode="tel" autoComplete="tel" value={whatsAppNumberFromLink(original.contactUrl)} placeholder="0812 3456 7890"
+          onChange={(event) => change((next) => { next.content.original!.contactUrl = whatsAppLinkFromNumber(event.target.value, next.content.original!.contactUrl); })} />
+      </label>
+      <p className="generator-editor-hint">Isi nomor saja. Tombol Japri Saya! tetap membuka chat WhatsApp.</p>
     </section>
     {mode === "all" && <section className="studio-group">
       <h3>Video latar</h3>
@@ -142,6 +149,31 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
         <input type="range" min={0} max={100} value={site.content.background.mobileFocalX ?? site.content.background.focalX} onChange={(event) => change((next) => { next.content.background.mobileFocalX = Number(event.target.value); })} />
       </label>
     </section>}
+
+    {(activeTab === "prompt-gambar" || activeTab === "prompt-video") && mode === "media" && (() => {
+      const isImage = activeTab === "prompt-gambar";
+      const prompt = isImage ? buildClientImagePrompt(site) : buildClientVideoPrompt(site);
+      return <section className="studio-group studio-original__prompt">
+        <div className="studio-original__heading"><h2>{isImage ? "Prompt Gambar" : "Prompt Video"}</h2><span>Otomatis dari data klien</span></div>
+        <p className="generator-editor-hint">{isImage
+          ? "Salin prompt ke Flow. Gunakan foto klien sebagai referensi pertama dan gambar gaya sinematik sebagai referensi kedua jika ada."
+          : "Salin prompt ke Flow setelah gambar klien siap. Gunakan gambar itu sebagai referensi utama saat membuat video berjalan."}</p>
+        {!hasClientPromptContext(site) && <p className="studio-original__prompt-warning" role="status">
+          Nama atau profesi belum lengkap. Isi dulu pada tahap Isi Data agar prompt sesuai klien.
+        </p>}
+        <label className="studio-original__field">
+          <span>{isImage ? "Teks prompt gambar" : "Teks prompt video"}</span>
+          <textarea className="studio-original__prompt-text" readOnly rows={16} value={prompt} aria-label={isImage ? "Prompt gambar otomatis" : "Prompt video otomatis"} />
+        </label>
+        <div className="studio-original__prompt-actions">
+          <p role="status">{copyStatus === "copied" ? "Prompt berhasil disalin." : copyStatus === "error" ? "Tidak bisa menyalin otomatis. Pilih dan salin teks prompt di atas." : "Prompt mengikuti data terbaru di tahap Isi Data."}</p>
+          <button type="button" onClick={async () => {
+            try { await navigator.clipboard.writeText(prompt); setCopyStatus("copied"); }
+            catch { setCopyStatus("error"); }
+          }}>Salin prompt</button>
+        </div>
+      </section>;
+    })()}
 
     {activeTab === "tampilan" && <OriginalStyleEditor value={style} update={updateStyle} reset={() => change((next) => { delete next.content.original!.style; })} />}
 
@@ -191,18 +223,18 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
             <TextField label="Detail popup" multiline maxLength={1200} value={item.description} onChange={(value) => updateGallery(section, item.id, "description", value)} />
             <TextField label="URL tombol pada popup" value={item.link} placeholder="https://contoh.com" onChange={(value) => updateGallery(section, item.id, "link", value)} />
           </>}
-          {mode !== "data" && <>
-          <TextField label="Link gambar 19:6" value={url} placeholder="https://.../gambar.webp" onChange={(value) => change((next) => { next.media.cards[item.id] = value; })} />
+          <>
+          <TextField label={"Link gambar " + section + " (URL HTTPS)"} value={url} placeholder="https://.../gambar.webp" onChange={(value) => change((next) => { next.media.cards[item.id] = value; })} />
           {url ? <img className="studio-original__image" src={previews[url] || url} alt={`Pratinjau ${item.title}`} width={570} height={180} loading="lazy" />
-            : <p className="studio-original__no-image">Belum ada foto. Ilustrasi bawaan tampil sementara.</p>}
-          {onUpload && <label className="studio-original__upload">Unggah foto JPG, PNG atau WebP (maksimal 1,3 MB)
+            : mode !== "data" && <p className="studio-original__no-image">Belum ada foto. Ilustrasi bawaan tampil sementara.</p>}
+          {mode !== "data" && onUpload && <label className="studio-original__upload">Unggah foto JPG, PNG atau WebP (maksimal 1,3 MB)
             <input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={(event) => {
               const file = event.currentTarget.files?.[0];
               if (file) onUpload(item.id, file);
               event.currentTarget.value = "";
             }} />
           </label>}
-          </>}
+          </>
         </div>;
       })}
       {mode !== "media" && <button type="button" className="studio-original__add" disabled={original[section].items.length >= 20} onClick={() => addGallery(section)}>+ Tambah {section}</button>}

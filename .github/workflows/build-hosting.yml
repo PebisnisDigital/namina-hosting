@@ -50,7 +50,7 @@ jobs:
           npm run test:generator-api
 
       - name: Prepare browser tests
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: Verify desktop, mobile, and interactions
         run: npm run test:hosting
