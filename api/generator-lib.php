@@ -196,9 +196,15 @@ function nm_publish(string $slug, array $doc): void {
     $html = str_replace('NAMINA_SITE_SLUG_PLACEHOLDER', htmlspecialchars($slug, ENT_QUOTES, 'UTF-8'), (string) file_get_contents($source));
     $folder = $public . '/' . $slug;
     if (!is_dir($folder) && !mkdir($folder, 0755, true)) throw new RuntimeException('Folder website gagal dibuat.');
+    // A restrictive PHP umask can override mkdir's requested mode.
+    if (!chmod($folder, 0755)) throw new RuntimeException('Izin folder website gagal diatur.');
     $index = $folder . '/index.html';
     $temp = tempnam($folder, '.site-');
-    if (!$temp || file_put_contents($temp, $html) === false || !rename($temp, $index)) throw new RuntimeException('Gagal menulis halaman HTML.');
+    if ($temp === false) throw new RuntimeException('Gagal membuat berkas HTML.');
+    if (file_put_contents($temp, $html) === false || !chmod($temp, 0644) || !rename($temp, $index)) {
+        @unlink($temp);
+        throw new RuntimeException('Gagal menulis halaman HTML.');
+    }
     nm_save_json($public . '/clients/' . $slug . '.json', $doc, true);
 }
 
