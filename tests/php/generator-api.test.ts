@@ -99,6 +99,8 @@ async function run() {
   result = await query(admin!, "review", { slug: site.slug, decision: "approve", expectedRevision: 2 });
   assert.equal(result.body.status, "published");
   assert.ok(statSync(join(siteDir, "klien-uji/index.html")).size > 200);
+  assert.equal(statSync(join(siteDir, "klien-uji")).mode & 0o777, 0o755, "published client directory must be web-readable");
+  assert.equal(statSync(join(siteDir, "klien-uji/index.html")).mode & 0o777, 0o644, "published client page must not be 0600/403");
   const published = JSON.parse(readFileSync(join(siteDir, "clients/klien-uji.json"), "utf8"));
   assert.equal(published.content.identity.profession, "Wirausaha");
   assert.equal(Array.isArray(published.media.cards), false, "public JSON must use an object for media mapping");
