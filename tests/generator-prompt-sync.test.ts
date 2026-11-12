@@ -25,7 +25,7 @@ test("master prompts adapt to each client's identity without inventing details",
   assert.match(image, /original outfit/);
   assert.match(video, /START MOVING IMMEDIATELY/);
   assert.match(video, /MOVING FLOOR - ESSENTIAL/);
-  assert.match(video, /FLOOR.*MOVE/);
+  assert.match(video, /floor must visibly MOVE/i);
   assert.match(video, /SEAMLESS LOOP/);
   site.content.identity.profession = "Perawat";
   assert.match(buildClientImagePrompt(site), /CLIENT PROFESSION: Perawat/);
