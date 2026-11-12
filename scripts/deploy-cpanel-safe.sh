@@ -107,13 +107,27 @@ else
   : > "$backup_dir/no-existing-overwrites.txt"
 fi
 
+# Application files must be readable by Apache/LiteSpeed. Keep private
+# backup permissions restrictive; only public copies get mode 755/644.
+umask 022
 for entry in $folders; do
   [[ -d "$build/$entry" ]] || continue
   mkdir -p "$docroot/$entry"
   cp -R "$build/$entry/." "$docroot/$entry/"
+  # Fix only paths present in this release, not any unmanaged files that
+  # might also exist in the destination directory.
+  (cd "$build" && find "$entry" -type d -print0 > "$paths")
+  while IFS= read -r -d '' relative; do
+    chmod 0755 "$docroot/$relative"
+  done < "$paths"
+  (cd "$build" && find "$entry" -type f -print0 > "$paths")
+  while IFS= read -r -d '' relative; do
+    chmod 0644 "$docroot/$relative"
+  done < "$paths"
 done
 for entry in $files; do
   [[ -f "$build/$entry" ]] || continue
   cp "$build/$entry" "$docroot/$entry"
+  chmod 0644 "$docroot/$entry"
 done
-printf 'NAMINA release copied without deletions. Backup: %s\n' "$backup_dir"
+printf 'NAMINA release copied with public permissions (dirs 755, files 644). Backup: %s\n' "$backup_dir"
