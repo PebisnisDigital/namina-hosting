@@ -81,7 +81,8 @@ chmod 0700 "$backup_root"
 backup_dir="$(mktemp -d "$backup_root/release-$(date -u +%Y%m%dT%H%M%SZ)-XXXXXX")"
 chmod 0700 "$backup_dir"
 list="$(mktemp)"
-trap 'rm -f "$list"' EXIT
+paths="$(mktemp)"
+trap 'rm -f "$list" "$paths"' EXIT
 
 # Archive only existing files that could be overwritten.
 for entry in $files; do
@@ -91,11 +92,14 @@ for entry in $files; do
 done
 for entry in $folders; do
   [[ -d "$build/$entry" ]] || continue
+  # cPanel Git deploy executes tasks without /dev/fd process-substitution support.
+  # Use a real temporary file and verify find succeeds before any deployment.
+  (cd "$build" && find "$entry" -type f -print0 > "$paths")
   while IFS= read -r -d '' relative; do
     if [[ -f "$docroot/$relative" ]]; then
       printf '%s\0' "$relative" >> "$list"
     fi
-  done < <(cd "$build" && find "$entry" -type f -print0)
+  done < "$paths"
 done
 if [[ -s "$list" ]]; then
   tar -C "$docroot" --null -czf "$backup_dir/overwritten-files.tar.gz" -T "$list"
