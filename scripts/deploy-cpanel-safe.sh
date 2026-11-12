@@ -13,7 +13,7 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd -P)"
 build="$repo_root/hosting-dist"
 docroot="/home/namina93/public_html"
 private="/home/namina93/namina-private"
-if [[ "$NAMINA_CPANEL_FIXTURE_MODE" == "ci-test" ]]; then
+if [[ -v NAMINA_CPANEL_FIXTURE_MODE && "$NAMINA_CPANEL_FIXTURE_MODE" == "ci-test" ]]; then
   build="$NAMINA_TEST_BUILD"
   docroot="$NAMINA_TEST_DOCROOT"
   private="$NAMINA_TEST_PRIVATE"
@@ -70,7 +70,7 @@ if [[ "$mode" == "--check" ]]; then
   printf 'CHECK ONLY: no production files changed.\n'
   exit 0
 fi
-if [[ "$NAMINA_CPANEL_APPROVE_PRODUCTION" != "YES_DEPLOY_NAMINA" ]]; then
+if [[ ! -v NAMINA_CPANEL_APPROVE_PRODUCTION || "$NAMINA_CPANEL_APPROVE_PRODUCTION" != "YES_DEPLOY_NAMINA" ]]; then
   printf 'REFUSED: production deployment approval missing.\n' >&2
   exit 1
 fi
