@@ -1,0 +1,1 @@
+import{C as e,S as t,w as n,x as r}from"./sites-DObu2BNw.js";import{t as i}from"./StaticSite-D4wlUu1B.js";/* empty css               */var a=n(e(),1),o=t(),s=r();(0,o.createRoot)(document.getElementById(`root`)).render((0,s.jsx)(a.StrictMode,{children:(0,s.jsx)(i,{slug:`vini`})}));
