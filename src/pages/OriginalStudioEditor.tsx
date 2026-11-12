@@ -234,7 +234,7 @@ export function OriginalStudioEditor({ site, change, mode = "all", onUpload, upl
               event.currentTarget.value = "";
             }} />
           </label>}
-          </>}
+          </>
         </div>;
       })}
       {mode !== "media" && <button type="button" className="studio-original__add" disabled={original[section].items.length >= 20} onClick={() => addGallery(section)}>+ Tambah {section}</button>}
